@@ -1,0 +1,159 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Admin {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model SiteSettings {
+  id                     Int      @id @default(1)
+  businessName           String   @default("R.K. Ayurveda")
+  logoUrl                String?
+  faviconUrl             String?
+  heroTitle              String   @default("Pure & Organic Ayurvedic Remedies")
+  heroSubtitle           String   @default("Experience the healing power of nature with small-batch, authentic products.")
+  heroImageUrl           String?
+  heroButtonText         String   @default("View Medicines")
+  heroButtonLink         String   @default("/medicines")
+  heroVisible            Boolean  @default(true)
+  aboutIntro             String   @default("Dedicated to bringing authentic Ayurvedic health and wellness to your home.")
+  footerText             String   @default("© All rights reserved.")
+  updatedAt              DateTime @updatedAt
+}
+
+model ContactDetails {
+  id             Int      @id @default(1)
+  businessName   String   @default("R.K. Organics")
+  address        String   @default("123 Ayurvedic Lane, Heritage Town")
+  phone          String   @default("+91 6305029231")
+  whatsapp       String   @default("6305029231")
+  email          String   @default("info@rkayurveda.com")
+  googleMapsLink String   @default("https://maps.google.com")
+  openingHours   String   @default("9:00 AM - 6:00 PM (Mon - Sat)")
+  instagramUrl   String?  @default("https://instagram.com")
+  facebookUrl    String?  @default("https://facebook.com")
+  twitterUrl     String?  @default("https://twitter.com")
+  updatedAt      DateTime @updatedAt
+}
+
+model AboutContent {
+  id                Int      @id @default(1)
+  heading           String   @default("About Our Organisation")
+  ourStory          String
+  mission           String
+  vision            String
+  philosophy        String
+  qualityInfo       String
+  whyChooseUs       String
+  additionalContent String?
+  imageUrl          String?
+  isEnabled         Boolean  @default(true)
+  updatedAt         DateTime @updatedAt
+}
+
+model Category {
+  id              Int        @id @default(autoincrement())
+  name            String     @unique // Keep for backward compatibility
+  teluguName      String
+  englishName     String     @unique
+  teluguSubtitle  String?
+  englishSubtitle String?
+  description     String?
+  imageUrl        String?
+  displayOrder    Int        @default(0)
+  isEnabled       Boolean    @default(true)
+  medicines       Medicine[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+model Medicine {
+  id                Int        @id @default(autoincrement())
+  name              String     // Keep for backward compatibility (maps to englishName || teluguName)
+  teluguName        String
+  englishName       String?
+  slug              String     @unique
+  description       String
+  shortDescription  String?
+  price             Float      @default(0.0)
+  discountPrice     Float?
+  quantity          String?    // e.g. "10 tablets"
+  imageUrl          String?    // Optional for raw ingredients
+  availability      String     @default("AVAILABLE") // "AVAILABLE", "OUT_OF_STOCK", "HIDDEN"
+  whatsappEnabled   Boolean    @default(true)
+  displayOrder      Int        @default(0)
+  ingredients       String?
+  benefits          String?
+  usageInstructions String?
+  isFeatured        Boolean    @default(false)
+  isActive          Boolean    @default(true)
+  categories        Category[] // Implicit many-to-many relationship
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+}
+
+model Benefit {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String
+  imageUrl     String?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Testimonial {
+  id           Int      @id @default(autoincrement())
+  name         String
+  content      String
+  rating       Int      @default(5)
+  imageUrl     String?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Promotion {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String
+  imageUrl    String?
+  buttonText  String?
+  buttonUrl   String?
+  startDate   DateTime?
+  endDate     DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model NavigationItem {
+  id           Int      @id @default(autoincrement())
+  name         String
+  url          String
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model WhatsAppSettings {
+  id                     Int      @id @default(1)
+  whatsappNumber         String   @default("6305029231")
+  defaultMessage         String   @default("Hello, I would like to order {medicineName}. Price: {price}. Quantity: {quantity}.")
+  businessName           String   @default("R.K. Ayurveda")
+  orderMessageFormat     String   @default("Hello, I would like to order {medicineName}. Price: {price}. Quantity: {quantity}.")
+  updatedAt              DateTime @updatedAt
+}

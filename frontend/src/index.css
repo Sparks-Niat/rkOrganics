@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #f2f7f4;
+  --color-primary-100: #e2ede7;
+  --color-primary-200: #c6dbd0;
+  --color-primary-300: #9cbdad;
+  --color-primary-400: #6d9681;
+  --color-primary-500: #2e5a44; /* Forest Green */
+  --color-primary-600: #244836;
+  --color-primary-700: #1b3628;
+  --color-primary-800: #162c21;
+  --color-primary-900: #12241b;
+  --color-primary-950: #0a130f;
+
+  --color-accent-50: #fbfaf7;
+  --color-accent-100: #f5eedc;
+  --color-accent-200: #ebd8b5;
+  --color-accent-300: #deb884;
+  --color-accent-400: #cf9351;
+  --color-accent-500: #b5742f; /* Gold / Ochre Accent */
+  --color-accent-600: #965a24;
+  --color-accent-700: #7a441e;
+  --color-accent-800: #60361a;
+  --color-accent-900: #4d2b17;
+
+  --color-sand-50: #fafaf9;
+  --color-sand-100: #f5f5f4;
+  --color-sand-200: #e7e5e4;
+  --color-sand-300: #d6d3d1;
+  --color-sand-400: #a8a29e;
+  --color-sand-500: #78716c;
+  --color-sand-600: #57534e;
+  --color-sand-700: #44403c;
+  --color-sand-800: #292524;
+  --color-sand-900: #1c1917;
+
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-sand-50);
+  color: var(--color-sand-900);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-dark {
+  background: rgba(46, 90, 68, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(46, 90, 68, 0.1);
+}
+
+/* Smooth active link transition */
+.nav-link {
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -4px;
+  left: 0;
+  background-color: var(--color-primary-500);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
