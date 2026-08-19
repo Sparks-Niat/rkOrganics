@@ -5,31 +5,31 @@ import { api } from '../utils/api';
 import { useSocket } from '../context/SocketContext';
 
 const SkeletonCard = () => (
-  <div className="bg-white rounded-2xl overflow-hidden border border-primary-100/50 shadow-xs flex flex-col h-full animate-pulse">
-    <div className="h-56 bg-sand-200"></div>
-    <div className="p-6 flex flex-col flex-grow space-y-4 justify-between">
-      <div className="space-y-3">
-        <div className="h-6 bg-sand-200 rounded-md w-3/4"></div>
-        <div className="h-4 bg-sand-100 rounded-md w-1/2"></div>
-        <div className="h-4 bg-sand-100 rounded-md w-full"></div>
+  <div className="bg-white rounded-xl sm:rounded-2xl overflow-hidden border border-primary-100/50 shadow-xs flex flex-col h-full animate-pulse">
+    <div className="h-14 xs:h-18 sm:h-56 bg-sand-200"></div>
+    <div className="p-2 sm:p-6 flex flex-col flex-grow space-y-2 sm:space-y-4 justify-between">
+      <div className="space-y-1 sm:space-y-3">
+        <div className="h-4 sm:h-6 bg-sand-200 rounded-md w-3/4"></div>
+        <div className="h-3 sm:h-4 bg-sand-100 rounded-md w-1/2"></div>
+        <div className="h-3 bg-sand-100 rounded-md w-full hidden sm:block"></div>
       </div>
-      <div className="space-y-3 pt-4 border-t border-primary-50">
-        <div className="h-8 bg-sand-200 rounded-md w-1/3"></div>
-        <div className="h-10 bg-sand-200 rounded-xl w-full"></div>
+      <div className="space-y-2 pt-1.5 sm:pt-4 border-t border-primary-50">
+        <div className="h-3 sm:h-8 bg-sand-200 rounded-md w-1/2 sm:w-1/3"></div>
+        <div className="h-8 bg-sand-200 rounded-xl w-full hidden sm:block"></div>
       </div>
     </div>
   </div>
 );
 
 const CategorySkeleton = () => (
-  <div className="bg-white rounded-3xl overflow-hidden border border-primary-100/50 shadow-xs flex flex-col h-full animate-pulse">
-    <div className="h-48 bg-sand-200"></div>
-    <div className="p-6 space-y-3 flex-grow flex flex-col justify-between">
-      <div className="space-y-2">
-        <div className="h-6 bg-sand-200 rounded-md w-3/4"></div>
-        <div className="h-4 bg-sand-150 rounded-md w-1/2"></div>
+  <div className="bg-white rounded-xl sm:rounded-3xl overflow-hidden border border-primary-100/50 shadow-xs flex flex-col h-full animate-pulse">
+    <div className="h-20 sm:h-48 bg-sand-200"></div>
+    <div className="p-3 sm:p-6 space-y-2 sm:space-y-3 flex-grow flex flex-col justify-between">
+      <div className="space-y-1 sm:space-y-2">
+        <div className="h-4 sm:h-6 bg-sand-200 rounded-md w-3/4"></div>
+        <div className="h-3 sm:h-4 bg-sand-150 rounded-md w-1/2"></div>
       </div>
-      <div className="h-4 bg-sand-100 rounded-md w-1/3"></div>
+      <div className="h-3 sm:h-4 bg-sand-100 rounded-md w-1/3 hidden sm:block"></div>
     </div>
   </div>
 );
@@ -247,11 +247,9 @@ export default function Medicines() {
                     className="w-full pl-10 pr-4 py-2 bg-sand-50 border border-primary-100 rounded-xl focus:outline-hidden focus:border-primary-500 focus:ring-1 focus:ring-primary-500 text-sm"
                   />
                 </div>
-              </div>
-
-              {/* Medicines Grid */}
+              </div>              {/* Medicines Grid */}
               {loading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-8">
                   <SkeletonCard />
                   <SkeletonCard />
                   <SkeletonCard />
@@ -259,7 +257,7 @@ export default function Medicines() {
               ) : filteredMedicines.length === 0 ? (
                 <div className="text-center py-20 bg-white rounded-3xl border border-primary-100/50 shadow-xs flex flex-col items-center justify-center p-8">
                   <ShoppingBag size={48} className="text-sand-300 mb-4 stroke-1" />
-                  <h3 className="font-display font-bold text-xl text-primary-950">No Medicines Available</h3>
+                  <h3 className="font-display font-bold text-xl text-primary-955">No Medicines Available</h3>
                   <p className="text-sand-500 text-sm mt-1 max-w-sm">
                     {searchQuery ? "No products found matching your search in this category." : "No medicines available in this category yet."}
                   </p>
@@ -272,18 +270,18 @@ export default function Medicines() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 stagger-list">
+                <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-8 stagger-list">
                   {filteredMedicines.map((medicine) => {
                     const isOutOfStock = medicine.availability === 'OUT_OF_STOCK';
                     const hasDiscount = medicine.discountPrice !== null && medicine.discountPrice !== undefined;
                     return (
                       <div 
                         key={medicine.id} 
-                        className={`bg-white rounded-2xl overflow-hidden border border-primary-100 shadow-xs hover:shadow-md transition-all flex flex-col h-full group ${
+                        className={`bg-white rounded-xl sm:rounded-2xl overflow-hidden border border-primary-100 shadow-xs hover:shadow-md transition-all flex flex-col h-full group ${
                           isOutOfStock ? 'opacity-85' : 'hover:-translate-y-1 duration-300'
                         }`}
                       >
-                        <Link to={`/product/${medicine.slug}`} className="h-56 overflow-hidden relative bg-primary-50 border-b border-primary-50 block">
+                        <Link to={`/product/${medicine.slug}`} className="h-14 xs:h-18 sm:h-56 overflow-hidden relative bg-primary-50 border-b border-primary-50 block">
                           {medicine.imageUrl ? (
                             <img
                               src={medicine.imageUrl}
@@ -292,27 +290,28 @@ export default function Medicines() {
                             />
                           ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center text-primary-300">
-                              <Heart size={40} className="stroke-1" />
-                              <span className="text-[10px] font-semibold mt-2">R.K. Ayurveda</span>
+                              <Heart className="stroke-1 w-5 h-5 sm:w-10 sm:h-10" />
+                              <span className="text-[8px] sm:text-[10px] font-semibold mt-1">R.K. Ayurveda</span>
                             </div>
                           )}
-                          <span className={`absolute top-4 right-4 text-xs px-2.5 py-1 rounded-full font-bold shadow-xs border ${
+                          <span className={`absolute top-1 right-1 text-[7px] xs:text-[8px] px-1 py-0.5 rounded-full font-bold shadow-xs border hidden xs:inline-block sm:top-4 sm:right-4 sm:text-xs sm:px-2.5 sm:py-1 ${
                             isOutOfStock 
                               ? 'bg-rose-50 text-rose-700 border-rose-100' 
                               : 'bg-emerald-50 text-emerald-700 border-emerald-100'
                           }`}>
-                            {isOutOfStock ? 'Out of Stock' : 'Available'}
+                            <span className="sm:hidden">{isOutOfStock ? 'Out' : 'Avail'}</span>
+                            <span className="hidden sm:inline">{isOutOfStock ? 'Out of Stock' : 'Available'}</span>
                           </span>
                           {medicine.quantity && (
-                            <span className="absolute bottom-4 left-4 bg-primary-900/90 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-primary-800">
+                            <span className="absolute bottom-1 left-1 bg-primary-900/90 text-white text-[7px] px-1.5 py-0.5 rounded-md font-bold border border-primary-800 sm:bottom-4 sm:left-4 sm:text-[10px] sm:px-2.5 sm:py-1">
                               {medicine.quantity}
                             </span>
                           )}
                         </Link>
 
-                        <div className="p-6 flex flex-col flex-grow space-y-4 justify-between">
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap gap-1">
+                        <div className="p-2 sm:p-6 flex flex-col flex-grow space-y-2 sm:space-y-4 justify-between">
+                          <div className="space-y-1 sm:space-y-2">
+                            <div className="flex flex-wrap gap-1 hidden sm:flex">
                               {medicine.categories?.map(c => (
                                 <span key={c.id} className="text-[9px] bg-sand-100 text-sand-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
                                   {c.englishName}
@@ -320,44 +319,46 @@ export default function Medicines() {
                               ))}
                             </div>
                             <Link to={`/product/${medicine.slug}`} className="block">
-                              <h3 className="font-display font-bold text-lg text-primary-955 transition-colors group-hover:text-primary-800 leading-tight">
+                              <h3 className="font-display font-bold text-xs xs:text-sm sm:text-lg text-primary-955 transition-colors group-hover:text-primary-800 leading-tight">
                                 {medicine.englishName || medicine.teluguName}
                               </h3>
                               {medicine.englishName && medicine.teluguName && (
-                                <h4 className="text-sand-500 font-semibold text-xs mt-0.5">
+                                <h4 className="text-sand-500 font-semibold text-[8px] xs:text-[9px] sm:text-xs mt-0">
                                   {medicine.teluguName}
                                 </h4>
                               )}
                             </Link>
-                            <p className="text-sand-650 text-xs sm:text-sm line-clamp-2 leading-relaxed">
+                            <p className="text-sand-650 text-xs sm:text-sm line-clamp-2 leading-relaxed hidden sm:block">
                               {medicine.shortDescription || medicine.description || 'Description coming soon.'}
                             </p>
                           </div>
 
-                          <div className="space-y-4 pt-3 border-t border-primary-50">
-                            <div className="flex justify-between items-center">
+                          <div className="space-y-2 sm:space-y-4 pt-1.5 sm:pt-3 border-t border-primary-50">
+                            <div className="flex flex-col xs:flex-row xs:justify-between xs:items-center gap-1">
                               {medicine.price && medicine.price > 0 ? (
-                                <span className="text-primary-850 font-display font-bold text-xl">
+                                <span className="text-primary-850 font-display font-bold text-xs xs:text-sm sm:text-xl">
                                   ₹{medicine.discountPrice || medicine.price}
                                 </span>
                               ) : (
-                                <span className="text-sand-500 font-medium text-xs">
+                                <span className="text-sand-500 font-medium text-[8px] xs:text-[10px] sm:text-xs">
                                   Price not available
                                 </span>
                               )}
                               <Link 
                                 to={`/product/${medicine.slug}`}
-                                className="inline-flex items-center gap-1 text-xs text-primary-700 font-bold hover:text-primary-900"
+                                className="inline-flex items-center gap-0.5 text-[9px] xs:text-xs text-primary-700 font-bold hover:text-primary-900"
                               >
-                                <Eye size={14} />
-                                <span>View Details</span>
+                                <span className="hidden xs:inline">View Details</span>
+                                <span className="xs:hidden">Details</span>
+                                <ArrowRight size={10} className="sm:hidden" />
+                                <Eye size={14} className="hidden sm:inline" />
                               </Link>
                             </div>
                             {medicine.whatsappEnabled && (
                               <button
                                 onClick={(e) => handleWhatsAppOrder(e, medicine)}
                                 disabled={isOutOfStock}
-                                className={`w-full inline-flex items-center justify-center gap-2 font-medium py-2.5 rounded-xl transition-all text-xs cursor-pointer border-none ${
+                                className={`w-full inline-flex items-center justify-center gap-2 font-medium py-2.5 rounded-xl transition-all text-xs cursor-pointer border-none hidden sm:flex ${
                                   isOutOfStock
                                     ? 'bg-sand-200 text-sand-500 cursor-not-allowed border border-sand-300'
                                     : 'bg-primary-600 hover:bg-primary-700 text-white shadow-xs hover:shadow-md'
@@ -406,7 +407,7 @@ export default function Medicines() {
             </div>
 
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-8">
                 <SkeletonCard />
                 <SkeletonCard />
                 <SkeletonCard />
@@ -420,17 +421,17 @@ export default function Medicines() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 stagger-list">
+              <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-8 stagger-list">
                 {filteredMedicines.map((medicine) => {
                   const isOutOfStock = medicine.availability === 'OUT_OF_STOCK';
                   return (
                     <div 
                       key={medicine.id} 
-                      className={`bg-white rounded-2xl overflow-hidden border border-primary-100 shadow-xs hover:shadow-md transition-all flex flex-col h-full group ${
+                      className={`bg-white rounded-xl sm:rounded-2xl overflow-hidden border border-primary-100 shadow-xs hover:shadow-md transition-all flex flex-col h-full group ${
                         isOutOfStock ? 'opacity-85' : 'hover:-translate-y-1 duration-300'
                       }`}
                     >
-                      <Link to={`/product/${medicine.slug}`} className="h-56 overflow-hidden relative bg-primary-50 border-b border-primary-50 block">
+                      <Link to={`/product/${medicine.slug}`} className="h-14 xs:h-18 sm:h-56 overflow-hidden relative bg-primary-50 border-b border-primary-50 block">
                         {medicine.imageUrl ? (
                           <img
                             src={medicine.imageUrl}
@@ -439,27 +440,28 @@ export default function Medicines() {
                           />
                         ) : (
                           <div className="w-full h-full flex flex-col items-center justify-center text-primary-300">
-                            <Heart size={40} className="stroke-1" />
-                            <span className="text-[10px] font-semibold mt-2">R.K. Ayurveda</span>
+                            <Heart className="stroke-1 w-5 h-5 sm:w-10 sm:h-10" />
+                            <span className="text-[8px] sm:text-[10px] font-semibold mt-1">R.K. Ayurveda</span>
                           </div>
                         )}
-                        <span className={`absolute top-4 right-4 text-xs px-2.5 py-1 rounded-full font-bold shadow-xs border ${
+                        <span className={`absolute top-1 right-1 text-[7px] xs:text-[8px] px-1 py-0.5 rounded-full font-bold shadow-xs border hidden xs:inline-block sm:top-4 sm:right-4 sm:text-xs sm:px-2.5 sm:py-1 ${
                           isOutOfStock 
                             ? 'bg-rose-50 text-rose-700 border-rose-100' 
                             : 'bg-emerald-50 text-emerald-700 border-emerald-100'
                         }`}>
-                          {isOutOfStock ? 'Out of Stock' : 'Available'}
+                          <span className="sm:hidden">{isOutOfStock ? 'Out' : 'Avail'}</span>
+                          <span className="hidden sm:inline">{isOutOfStock ? 'Out of Stock' : 'Available'}</span>
                         </span>
                         {medicine.quantity && (
-                          <span className="absolute bottom-4 left-4 bg-primary-900/90 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-primary-800">
+                          <span className="absolute bottom-1 left-1 bg-primary-900/90 text-white text-[7px] px-1.5 py-0.5 rounded-md font-bold border border-primary-800 sm:bottom-4 sm:left-4 sm:text-[10px] sm:px-2.5 sm:py-1">
                             {medicine.quantity}
                           </span>
                         )}
                       </Link>
 
-                      <div className="p-6 flex flex-col flex-grow space-y-4 justify-between">
-                        <div className="space-y-2">
-                          <div className="flex flex-wrap gap-1">
+                      <div className="p-2 sm:p-6 flex flex-col flex-grow space-y-2 sm:space-y-4 justify-between">
+                        <div className="space-y-1 sm:space-y-2">
+                          <div className="flex flex-wrap gap-1 hidden sm:flex">
                             {medicine.categories?.map(c => (
                               <span key={c.id} className="text-[9px] bg-sand-100 text-sand-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
                                 {c.englishName}
@@ -467,38 +469,46 @@ export default function Medicines() {
                             ))}
                           </div>
                           <Link to={`/product/${medicine.slug}`} className="block">
-                            <h3 className="font-display font-bold text-lg text-primary-955 transition-colors group-hover:text-primary-800 leading-tight">
+                            <h3 className="font-display font-bold text-xs xs:text-sm sm:text-lg text-primary-955 transition-colors group-hover:text-primary-800 leading-tight">
                               {medicine.englishName || medicine.teluguName}
                             </h3>
                             {medicine.englishName && medicine.teluguName && (
-                              <h4 className="text-sand-500 font-semibold text-xs mt-0.5">
+                              <h4 className="text-sand-500 font-semibold text-[8px] xs:text-[9px] sm:text-xs mt-0">
                                 {medicine.teluguName}
                               </h4>
                             )}
                           </Link>
-                          <p className="text-sand-650 text-xs sm:text-sm line-clamp-2 leading-relaxed">
-                            {medicine.shortDescription || medicine.description}
+                          <p className="text-sand-650 text-xs sm:text-sm line-clamp-2 leading-relaxed hidden sm:block">
+                            {medicine.shortDescription || medicine.description || 'Description coming soon.'}
                           </p>
                         </div>
 
-                        <div className="space-y-4 pt-3 border-t border-primary-50">
-                          <div className="flex justify-between items-center">
-                            <span className="text-primary-850 font-display font-bold text-xl">
-                              ₹{medicine.discountPrice || medicine.price}
-                            </span>
+                        <div className="space-y-2 sm:space-y-4 pt-1.5 sm:pt-3 border-t border-primary-50">
+                          <div className="flex flex-col xs:flex-row xs:justify-between xs:items-center gap-1">
+                            {medicine.price && medicine.price > 0 ? (
+                              <span className="text-primary-850 font-display font-bold text-xs xs:text-sm sm:text-xl">
+                                ₹{medicine.discountPrice || medicine.price}
+                              </span>
+                            ) : (
+                              <span className="text-sand-500 font-medium text-[8px] xs:text-[10px] sm:text-xs">
+                                Price not available
+                              </span>
+                            )}
                             <Link 
                               to={`/product/${medicine.slug}`}
-                              className="inline-flex items-center gap-1 text-xs text-primary-700 font-bold hover:text-primary-900"
+                              className="inline-flex items-center gap-0.5 text-[9px] xs:text-xs text-primary-700 font-bold hover:text-primary-900"
                             >
-                              <Eye size={14} />
-                              <span>View Details</span>
+                              <span className="hidden xs:inline">View Details</span>
+                              <span className="xs:hidden">Details</span>
+                              <ArrowRight size={10} className="sm:hidden" />
+                              <Eye size={14} className="hidden sm:inline" />
                             </Link>
                           </div>
                           {medicine.whatsappEnabled && (
                             <button
                               onClick={(e) => handleWhatsAppOrder(e, medicine)}
                               disabled={isOutOfStock}
-                              className={`w-full inline-flex items-center justify-center gap-2 font-medium py-2.5 rounded-xl transition-all text-xs cursor-pointer border-none ${
+                              className={`w-full inline-flex items-center justify-center gap-2 font-medium py-2.5 rounded-xl transition-all text-xs cursor-pointer border-none hidden sm:flex ${
                                 isOutOfStock
                                   ? 'bg-sand-200 text-sand-500 cursor-not-allowed border border-sand-300'
                                   : 'bg-primary-600 hover:bg-primary-700 text-white shadow-xs hover:shadow-md'
@@ -543,7 +553,7 @@ export default function Medicines() {
 
             {/* Categories Selection Grid */}
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8">
                 <CategorySkeleton />
                 <CategorySkeleton />
                 <CategorySkeleton />
@@ -553,7 +563,7 @@ export default function Medicines() {
                 <p className="text-sand-500 font-medium">No categories available at the moment.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8">
                 {categories.map((cat) => {
                   const count = cat._count?.medicines || 0;
                   const slug = getCategorySlug(cat);
@@ -561,9 +571,9 @@ export default function Medicines() {
                     <Link
                       key={cat.id}
                       to={`/medicines/${slug}`}
-                      className="bg-white rounded-3xl overflow-hidden border border-primary-100/50 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col h-full group hover:-translate-y-1"
+                      className="bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-primary-100/50 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col h-full group hover:-translate-y-1"
                     >
-                      <div className="h-48 overflow-hidden relative bg-primary-50">
+                      <div className="h-20 xs:h-24 sm:h-48 overflow-hidden relative bg-primary-50">
                         {cat.imageUrl ? (
                           <img
                             src={cat.imageUrl}
@@ -572,27 +582,27 @@ export default function Medicines() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-primary-350 bg-primary-50">
-                            <Sparkles size={48} className="stroke-1" />
+                            <Sparkles className="stroke-1 w-6 h-6 sm:w-12 sm:h-12" />
                           </div>
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60"></div>
-                        <span className="absolute bottom-4 left-4 bg-primary-950/90 backdrop-blur-xs text-accent-400 text-xs px-3 py-1.5 rounded-full font-bold shadow-xs border border-primary-800">
-                          {count} {count === 1 ? 'Medicine' : 'Medicines'}
+                        <span className="absolute bottom-2 left-2 bg-primary-950/90 backdrop-blur-xs text-accent-400 text-[8px] xs:text-[9px] px-2 py-0.5 rounded-full font-bold shadow-xs border border-primary-800 sm:bottom-4 sm:left-4 sm:text-xs sm:px-3 sm:py-1.5">
+                          {count} {count === 1 ? 'Med' : 'Meds'}
                         </span>
                       </div>
 
-                      <div className="p-6 flex flex-col flex-grow justify-between space-y-4">
-                        <div className="space-y-1.5">
-                          <h3 className="font-display font-bold text-lg text-primary-955 group-hover:text-primary-800 transition-colors">
+                      <div className="p-3 sm:p-6 flex flex-col flex-grow justify-between space-y-2 sm:space-y-4">
+                        <div className="space-y-0.5 sm:space-y-1.5">
+                          <h3 className="font-display font-bold text-xs xs:text-sm sm:text-lg text-primary-955 group-hover:text-primary-800 transition-colors leading-tight">
                             {cat.englishName}
                           </h3>
                           {cat.teluguName && (
-                            <p className="text-primary-750 text-xs font-semibold leading-relaxed">
+                            <p className="text-primary-750 text-[9px] xs:text-xs font-semibold leading-normal sm:leading-relaxed">
                               {cat.teluguName}
                             </p>
                           )}
                         </div>
-                        <div className="flex items-center text-accent-600 font-bold text-sm pt-2 group-hover:text-accent-700 transition-colors">
+                        <div className="flex items-center text-accent-600 font-bold text-sm pt-2 group-hover:text-accent-700 transition-colors hidden sm:flex">
                           <span>View Medicines</span>
                           <ArrowRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
                         </div>
