@@ -61,7 +61,7 @@ const DEFAULT_FALLBACK_DATA = {
   heading: 'Rooted in Nature. Inspired by Ayurveda.',
   aboutIntro: 'RK Organics brings the timeless wisdom of Ayurveda together with carefully selected natural ingredients to provide authentic, trusted and thoughtfully prepared herbal remedies.',
   ourStory: 'RK Organics is built on a simple belief — nature has always provided powerful ways to support everyday wellbeing. Inspired by traditional Ayurvedic knowledge, we are committed to bringing natural remedies closer to modern families while respecting the wisdom and practices passed down through generations.',
-  storyImageUrl: 'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?auto=format&fit=crop&w=800&q=80',
+  storyImageUrl: '/story.png',
   mission: 'Our mission is to offer thoughtfully prepared Ayurvedic remedies using quality ingredients, responsible practices and a commitment to authenticity, transparency and customer trust.',
   vision: 'To become a trusted name in natural and Ayurvedic wellness by making authentic herbal remedies accessible to families while preserving the timeless wisdom of nature.',
   philosophyIntro: 'Our approach is guided by timeless natural wisdom.',
@@ -238,23 +238,14 @@ export default function About() {
                   </div>
                 </div>
                 <div className="lg:col-span-5 flex justify-center">
-                  {data.storyImageUrl ? (
-                    <div className="relative group">
-                      <div className="absolute inset-0 bg-primary-900 rounded-3xl translate-x-3 translate-y-3 -z-10 opacity-10 group-hover:translate-x-1 group-hover:translate-y-1 transition-transform"></div>
-                      <img
-                        src={data.storyImageUrl}
-                        alt="R.K. Ayurveda story"
-                        className="w-full max-w-md h-[400px] object-cover rounded-3xl shadow-md border-4 border-white"
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-full max-w-md h-[320px] bg-gradient-to-br from-primary-800 to-primary-950 text-white rounded-3xl shadow-lg flex flex-col items-center justify-center p-8 text-center border-4 border-white relative overflow-hidden">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-xl"></div>
-                      {renderIcon("HeartHandshake", "text-accent-400 mb-4", 48)}
-                      <h3 className="font-display font-bold text-2xl mb-2 text-white">{contact?.businessName || 'R.K. Ayurveda'}</h3>
-                      <p className="text-primary-100/90 text-sm leading-relaxed">Dedicated to restoring health and longevity through pure, natural solutions.</p>
-                    </div>
-                  )}
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-primary-900 rounded-3xl translate-x-3 translate-y-3 -z-10 opacity-10 group-hover:translate-x-1 group-hover:translate-y-1 transition-transform"></div>
+                    <img
+                      src="/story.png"
+                      alt="R.K. Ayurveda Story Ingredients"
+                      className="w-full max-w-md h-[400px] object-cover rounded-3xl shadow-md border-4 border-white"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
