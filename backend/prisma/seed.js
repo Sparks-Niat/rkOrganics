@@ -7,20 +7,15 @@ async function main() {
   console.log('Seeding Ayurvedic Medicines database with new many-to-many structure...');
 
   // 1. Create/Update Admin Account
-  const existingAdmin = await prisma.admin.findUnique({
-    where: { email: 'admin@example.com' },
+  await prisma.admin.deleteMany();
+  const passwordHash = await bcrypt.hash('rkorganics', 10);
+  await prisma.admin.create({
+    data: {
+      email: 'joelramireddy@gmail.com',
+      passwordHash,
+    },
   });
-
-  if (!existingAdmin) {
-    const passwordHash = await bcrypt.hash('admin123', 10);
-    await prisma.admin.create({
-      data: {
-        email: 'admin@example.com',
-        passwordHash,
-      },
-    });
-    console.log('Admin user created: admin@example.com / admin123');
-  }
+  console.log('Admin user created: joelramireddy@gmail.com / rkorganics');
 
   // 2. Create Default SiteSettings
   const existingSettings = await prisma.siteSettings.findFirst();
