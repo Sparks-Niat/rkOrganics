@@ -246,7 +246,7 @@ export default function Home() {
       {/* Dynamic Benefits / Why Choose Us Grid */}
       <section className="py-16 bg-gradient-to-b from-white to-primary-50/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 stagger-list">
             {benefits.map((benefit, idx) => (
               <div key={benefit.id || idx} className="bg-white p-8 rounded-2xl border border-primary-100 shadow-xs flex items-start gap-4">
                 <div className="shrink-0 text-primary-600 mt-1 h-10 w-10 rounded-xl bg-primary-50 flex items-center justify-center font-bold text-base">
@@ -284,7 +284,7 @@ export default function Home() {
               <p className="text-sand-500 font-medium">No featured medicines available at the moment. Please check back later!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 stagger-list">
               {featuredMedicines.map((medicine) => {
                 const isOutOfStock = medicine.availability === 'OUT_OF_STOCK';
                 const hasDiscount = medicine.discountPrice !== null && medicine.discountPrice !== undefined;

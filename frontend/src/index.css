@@ -88,3 +88,222 @@ h1, h2, h3, h4, h5, h6 {
 .nav-link.active::after {
   width: 100%;
 }
+
+/* ==========================================================================
+   PREMIUM MOTION SYSTEM & MICRO-INTERACTIONS
+   ========================================================================== */
+
+/* Hardware accelerated transition defaults for interactive elements */
+a, 
+button, 
+.card, 
+.group, 
+img, 
+input, 
+select, 
+textarea,
+.nav-link,
+[class*="hover:"],
+[class*="transition"] {
+  transition-property: transform, opacity, background-color, border-color, box-shadow, text-decoration-color;
+  transition-duration: 350ms !important;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Button & Link Hover/Active States */
+button:hover,
+.btn:hover,
+a.w-full.sm\:w-auto:hover,
+.inline-flex.items-center:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+button:active,
+.btn:active,
+a.w-full.sm\:w-auto:active,
+.inline-flex.items-center:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* Card Hover Animations */
+.card-animate,
+.medicine-card,
+.category-card,
+.benefit-card,
+.testimonial-card,
+.promotion-card,
+.bg-white.rounded-3xl.overflow-hidden, /* Gallery cards */
+.bg-white.p-8.sm\:p-10.rounded-3xl /* Mission/Vision cards */ {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.card-animate:hover,
+.medicine-card:hover,
+.category-card:hover,
+.benefit-card:hover,
+.testimonial-card:hover,
+.promotion-card:hover,
+.bg-white.rounded-3xl.overflow-hidden:hover,
+.bg-white.p-8.sm\:p-10.rounded-3xl:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02) !important;
+}
+
+/* Image Zoom on hover inside containers */
+.overflow-hidden img {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.overflow-hidden:hover img {
+  transform: scale(1.04) !important;
+}
+
+/* Page load entrance animations */
+nav {
+  animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Offer ribbon load transition */
+div.flex.flex-col.min-h-screen > div.bg-accent-500 {
+  animation: slideInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+  opacity: 0;
+}
+
+/* Hero elements staggered fade */
+section.relative.bg-gradient-to-br.from-primary-50 {
+  animation: fadeIn 1s ease-out forwards;
+}
+
+section.relative.bg-gradient-to-br.from-primary-50 .lg\:col-span-7 {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+  opacity: 0;
+}
+
+section.relative.bg-gradient-to-br.from-primary-50 .lg\:col-span-5 {
+  animation: scaleInUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
+  opacity: 0;
+}
+
+/* Subtle logo scale on hover */
+nav img {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+nav img:hover {
+  transform: scale(1.05);
+}
+
+/* Gentle slow float for hero image */
+@keyframes slowFloat {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0px); }
+}
+
+section.relative.bg-gradient-to-br.from-primary-50 img.relative.z-10 {
+  animation: slowFloat 7s ease-in-out infinite;
+}
+
+/* Scroll Reveal Base Classes */
+section,
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+section.revealed,
+.scroll-reveal.revealed {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* Staggered grid lists scroll reveal */
+.stagger-list {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.stagger-list > * {
+  opacity: 0;
+  transform: translateY(15px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.stagger-list.revealed > * {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.stagger-list.revealed > *:nth-child(1) { transition-delay: 80ms !important; }
+.stagger-list.revealed > *:nth-child(2) { transition-delay: 160ms !important; }
+.stagger-list.revealed > *:nth-child(3) { transition-delay: 240ms !important; }
+.stagger-list.revealed > *:nth-child(4) { transition-delay: 320ms !important; }
+.stagger-list.revealed > *:nth-child(5) { transition-delay: 400ms !important; }
+.stagger-list.revealed > *:nth-child(6) { transition-delay: 480ms !important; }
+
+/* Keyframe animations declaration */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleInUp {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Accessibility: Respect prefers-reduced-motion settings */
+@media (prefers-reduced-motion: reduce) {
+  section,
+  .scroll-reveal,
+  .stagger-list > *,
+  button,
+  .card,
+  img,
+  nav,
+  *, *::before, *::after {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}

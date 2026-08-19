@@ -224,7 +224,7 @@ export default function About() {
                 <div className="w-12 h-1 bg-accent-500 mx-auto rounded-full mt-4"></div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 stagger-list">
                 {data.philosophyItems.filter(item => item.isEnabled).map((item, idx) => (
                   <div key={item.id} className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-3 hover:bg-white/10 transition-colors">
                     <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center text-accent-400">
@@ -251,7 +251,7 @@ export default function About() {
                   {data.qualityIntro}
                 </p>
               </div>
-              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6 stagger-list">
                 {data.qualityItems.filter(item => item.isEnabled).map(item => (
                   <div key={item.id} className="p-6 bg-sand-50/50 rounded-2xl border border-sand-200/50 space-y-2 hover:bg-white transition-all duration-300">
                     <div className="h-10 w-10 rounded-xl bg-primary-50 flex items-center justify-center text-primary-700">
@@ -279,7 +279,7 @@ export default function About() {
                 <div className="w-12 h-1 bg-accent-500 mx-auto rounded-full mt-4"></div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 stagger-list">
                 {data.whyChooseUsItems.filter(item => item.isEnabled).map(item => (
                   <div key={item.id} className="bg-white p-6 sm:p-8 rounded-2xl border border-primary-100 shadow-xs hover:-translate-y-1 hover:shadow-md transition-all duration-300 flex flex-col space-y-3">
                     <div className="h-10 w-10 rounded-xl bg-accent-50 flex items-center justify-center text-accent-700 shrink-0">
@@ -306,7 +306,7 @@ export default function About() {
               <div className="w-12 h-1 bg-accent-500 mx-auto rounded-full mt-4"></div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-list">
               {data.valueItems.filter(item => item.isEnabled).map(item => (
                 <div key={item.id} className="p-6 bg-sand-50/30 rounded-2xl border border-sand-100 flex gap-4 items-start hover:bg-white hover:border-primary-100 transition-all duration-300">
                   <div className="h-10 w-10 rounded-xl bg-primary-50 flex items-center justify-center text-primary-700 shrink-0 mt-0.5">
@@ -335,7 +335,7 @@ export default function About() {
                 <div className="w-12 h-1 bg-accent-500 mx-auto rounded-full mt-4"></div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 stagger-list">
                 {data.galleryImages.filter(img => img.isEnabled).map(img => (
                   <div key={img.id} className="bg-white rounded-3xl overflow-hidden border border-sand-100 group shadow-xs hover:shadow-md transition-all duration-300 flex flex-col">
                     <div className="h-64 overflow-hidden relative">
@@ -370,7 +370,7 @@ export default function About() {
               <div className="w-12 h-1 bg-accent-500 mx-auto rounded-full mt-4"></div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 stagger-list">
               {data.certifications.filter(c => c.isEnabled).map(c => (
                 <div key={c.id} className="bg-white p-6 rounded-2xl border border-sand-150 shadow-xs flex flex-col items-center text-center space-y-3 hover:shadow-sm transition-all duration-300">
                   {c.imageUrl ? (
