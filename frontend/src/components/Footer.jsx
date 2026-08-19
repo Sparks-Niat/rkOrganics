@@ -45,9 +45,16 @@ export default function Footer() {
           
           {/* Brand/About */}
           <div className="md:col-span-1">
-            <h3 className="font-display font-bold text-2xl text-accent-400 mb-4 tracking-wide">
-              {settings.businessName}
-            </h3>
+            <div className="flex items-center gap-3 mb-4">
+              <img 
+                src="/logo.jpg" 
+                alt="RK Organics Logo" 
+                className="h-14 w-14 object-contain rounded-full border border-primary-900 shadow-xs bg-white p-0.5"
+              />
+              <span style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', border: 0 }}>
+                RK Organics
+              </span>
+            </div>
             <p className="text-primary-200 text-sm leading-relaxed mb-6">
               {settings.aboutIntro}
             </p>

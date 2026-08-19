@@ -720,8 +720,8 @@ export default function AdminDashboard({ onLogout }) {
         <div className="space-y-8 max-h-[90vh] overflow-y-auto scrollbar-thin">
           {/* Logo Branding */}
           <div className="px-6 flex items-center gap-3 border-b border-primary-900 pb-6">
-            <div className="h-10 w-10 bg-accent-500 rounded-full flex items-center justify-center font-bold text-white">
-              A
+            <div className="h-10 w-10 rounded-full overflow-hidden border border-primary-800 bg-white shrink-0 flex items-center justify-center p-0.5">
+              <img src="/logo.jpg" alt="Logo" className="h-full w-full object-contain" />
             </div>
             <div>
               <h2 className="font-display font-bold text-base text-white truncate max-w-[140px]">

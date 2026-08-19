@@ -52,8 +52,8 @@ export default function AdminLogin({ onLoginSuccess }) {
         
         {/* Header Branding */}
         <div className="text-center space-y-3">
-          <div className="mx-auto h-16 w-16 rounded-2xl bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-700 shadow-xs">
-            <Lock size={30} />
+          <div className="mx-auto h-20 w-20 rounded-full border border-primary-100 flex items-center justify-center overflow-hidden shadow-xs bg-white p-0.5">
+            <img src="/logo.jpg" alt="RK Organics Logo" className="h-full w-full object-contain" />
           </div>
           <h2 className="font-display font-bold text-3xl text-primary-950">
             Admin Portal

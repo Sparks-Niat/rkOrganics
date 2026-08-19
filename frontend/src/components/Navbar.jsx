@@ -60,20 +60,14 @@ export default function Navbar() {
         <div className="flex justify-between h-20">
           {/* Logo & Brand Name */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center gap-3">
-              {settings.logoUrl ? (
-                <img 
-                  src={settings.logoUrl} 
-                  alt={settings.businessName} 
-                  className="h-12 w-12 object-contain rounded-full border border-primary-200"
-                />
-              ) : (
-                <div className="h-12 w-12 rounded-full bg-primary-500 flex items-center justify-center text-white font-display font-bold text-xl">
-                  {settings.businessName.charAt(0)}
-                </div>
-              )}
-              <span className="font-display font-bold text-xl sm:text-2xl text-primary-800 tracking-wide">
-                {settings.businessName}
+            <Link to="/" className="flex items-center gap-3" aria-label="RK Organics Home">
+              <img 
+                src="/logo.jpg" 
+                alt="RK Organics Logo" 
+                className="h-16 w-16 object-contain rounded-full border border-primary-100/50 shadow-xs"
+              />
+              <span style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', border: 0 }}>
+                RK Organics
               </span>
             </Link>
           </div>
