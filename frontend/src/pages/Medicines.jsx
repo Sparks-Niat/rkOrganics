@@ -330,15 +330,21 @@ export default function Medicines() {
                               )}
                             </Link>
                             <p className="text-sand-650 text-xs sm:text-sm line-clamp-2 leading-relaxed">
-                              {medicine.shortDescription || medicine.description}
+                              {medicine.shortDescription || medicine.description || 'Description coming soon.'}
                             </p>
                           </div>
 
                           <div className="space-y-4 pt-3 border-t border-primary-50">
                             <div className="flex justify-between items-center">
-                              <span className="text-primary-850 font-display font-bold text-xl">
-                                ₹{medicine.discountPrice || medicine.price}
-                              </span>
+                              {medicine.price && medicine.price > 0 ? (
+                                <span className="text-primary-850 font-display font-bold text-xl">
+                                  ₹{medicine.discountPrice || medicine.price}
+                                </span>
+                              ) : (
+                                <span className="text-sand-500 font-medium text-xs">
+                                  Price not available
+                                </span>
+                              )}
                               <Link 
                                 to={`/product/${medicine.slug}`}
                                 className="inline-flex items-center gap-1 text-xs text-primary-700 font-bold hover:text-primary-900"

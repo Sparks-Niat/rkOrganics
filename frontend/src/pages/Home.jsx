@@ -453,18 +453,24 @@ export default function Home() {
                       <div className="space-y-4 pt-4 border-t border-primary-100">
                         <div className="flex justify-between items-center">
                           <div className="flex items-baseline gap-2">
-                            {hasDiscount ? (
-                              <>
+                            {medicine.price && medicine.price > 0 ? (
+                              hasDiscount ? (
+                                <>
+                                  <span className="text-primary-800 font-display font-bold text-2xl">
+                                    ₹{medicine.discountPrice}
+                                  </span>
+                                  <span className="text-sand-400 font-display text-sm line-through">
+                                    ₹{medicine.price}
+                                  </span>
+                                </>
+                              ) : (
                                 <span className="text-primary-800 font-display font-bold text-2xl">
-                                  ₹{medicine.discountPrice}
-                                </span>
-                                <span className="text-sand-400 font-display text-sm line-through">
                                   ₹{medicine.price}
                                 </span>
-                              </>
+                              )
                             ) : (
-                              <span className="text-primary-800 font-display font-bold text-2xl">
-                                  ₹{medicine.price}
+                              <span className="text-sand-500 font-medium text-sm">
+                                Price not available
                               </span>
                             )}
                           </div>

@@ -210,21 +210,27 @@ export default function ProductDetails() {
               )}
               
               <div className="flex items-baseline gap-3 pt-2">
-                {hasDiscount ? (
-                  <>
+                {medicine.price && medicine.price > 0 ? (
+                  hasDiscount ? (
+                    <>
+                      <span className="text-primary-800 font-display font-bold text-2xl">
+                        ₹{medicine.discountPrice}
+                      </span>
+                      <span className="text-sand-400 font-display text-base line-through">
+                        ₹{medicine.price}
+                      </span>
+                      <span className="text-[10px] font-bold text-accent-600 bg-accent-50 border border-accent-100 px-2 py-0.5 rounded-md">
+                        SAVE {Math.round(((medicine.price - medicine.discountPrice) / medicine.price) * 100)}%
+                      </span>
+                    </>
+                  ) : (
                     <span className="text-primary-800 font-display font-bold text-2xl">
-                      ₹{medicine.discountPrice}
-                    </span>
-                    <span className="text-sand-400 font-display text-base line-through">
                       ₹{medicine.price}
                     </span>
-                    <span className="text-[10px] font-bold text-accent-600 bg-accent-50 border border-accent-100 px-2 py-0.5 rounded-md">
-                      SAVE {Math.round(((medicine.price - medicine.discountPrice) / medicine.price) * 100)}%
-                    </span>
-                  </>
+                  )
                 ) : (
-                  <span className="text-primary-800 font-display font-bold text-2xl">
-                    ₹{medicine.price}
+                  <span className="text-sand-500 font-medium text-base">
+                    Price not available
                   </span>
                 )}
               </div>
@@ -234,7 +240,7 @@ export default function ProductDetails() {
             <div className="space-y-2">
               <h3 className="text-xs font-bold text-primary-900 uppercase tracking-widest">Product Description</h3>
               <p className="text-sand-700 text-sm sm:text-base leading-relaxed whitespace-pre-line">
-                {medicine.description}
+                {medicine.description || 'Description coming soon.'}
               </p>
             </div>
 
@@ -248,7 +254,7 @@ export default function ProductDetails() {
                   <span className="text-xs font-bold uppercase tracking-wide">Ingredients</span>
                 </div>
                 <p className="text-xs text-sand-650 leading-relaxed font-medium">
-                  {medicine.ingredients || 'Natural herbs & extract.'}
+                  {medicine.ingredients || 'Information coming soon.'}
                 </p>
               </div>
 
@@ -259,7 +265,7 @@ export default function ProductDetails() {
                   <span className="text-xs font-bold uppercase tracking-wide">Key Benefits</span>
                 </div>
                 <p className="text-xs text-sand-650 leading-relaxed font-medium">
-                  {medicine.benefits || 'Promotes wellness & holistic health.'}
+                  {medicine.benefits || 'Information coming soon.'}
                 </p>
               </div>
 
@@ -270,7 +276,7 @@ export default function ProductDetails() {
                   <span className="text-xs font-bold uppercase tracking-wide">Dosage Guide</span>
                 </div>
                 <p className="text-xs text-sand-650 leading-relaxed font-medium">
-                  {medicine.usageInstructions || 'As directed by a practitioner.'}
+                  {medicine.usageInstructions || 'Information coming soon.'}
                 </p>
               </div>
 

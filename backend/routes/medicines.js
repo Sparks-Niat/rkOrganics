@@ -124,8 +124,10 @@ router.post('/', protect, async (req, res) => {
 
     const uniqueSlug = await getUniqueSlug(finalEnglish || finalTelugu);
     const order = displayOrder !== undefined ? parseInt(displayOrder) : 0;
-    const itemPrice = price !== undefined ? parseFloat(price) : 250;
-    const discPrice = discountPrice ? parseFloat(discountPrice) : null;
+    const parsedPrice = parseFloat(price);
+    const itemPrice = (!isNaN(parsedPrice) && price !== '' && price !== null) ? parsedPrice : 0;
+    const parsedDisc = parseFloat(discountPrice);
+    const discPrice = (!isNaN(parsedDisc) && discountPrice !== '' && discountPrice !== null) ? parsedDisc : null;
 
     const medicine = await prisma.medicine.create({
       data: {
@@ -220,10 +222,14 @@ router.put('/:id', protect, async (req, res) => {
     
     if (description !== undefined) updateData.description = description;
     if (shortDescription !== undefined) updateData.shortDescription = shortDescription;
-    if (price !== undefined) updateData.price = parseFloat(price);
+    if (price !== undefined) {
+      const parsedPrice = parseFloat(price);
+      updateData.price = (!isNaN(parsedPrice) && price !== '' && price !== null) ? parsedPrice : 0;
+    }
     
     if (discountPrice !== undefined) {
-      updateData.discountPrice = discountPrice ? parseFloat(discountPrice) : null;
+      const parsedDisc = parseFloat(discountPrice);
+      updateData.discountPrice = (!isNaN(parsedDisc) && discountPrice !== '' && discountPrice !== null) ? parsedDisc : null;
     }
 
     if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
