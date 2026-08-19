@@ -33,8 +33,14 @@ const __dirname = path.dirname(__filename);
 
 // Ensure uploads folder exists
 const uploadsPath = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsPath)) {
-  fs.mkdirSync(uploadsPath, { recursive: true });
+if (!process.env.VERCEL) {
+  if (!fs.existsSync(uploadsPath)) {
+    try {
+      fs.mkdirSync(uploadsPath, { recursive: true });
+    } catch (err) {
+      console.warn('Failed to create local uploads directory:', err.message);
+    }
+  }
 }
 
 // Middleware

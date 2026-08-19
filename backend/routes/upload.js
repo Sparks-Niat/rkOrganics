@@ -9,8 +9,14 @@ const router = express.Router();
 
 // Ensure uploads directory exists
 const uploadDir = './uploads';
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+if (!process.env.VERCEL) {
+  if (!fs.existsSync(uploadDir)) {
+    try {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    } catch (err) {
+      console.warn('Failed to create local uploads directory:', err.message);
+    }
+  }
 }
 
 // Multer Config
