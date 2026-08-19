@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm --prefix frontend install --legacy-peer-deps && npm --prefix backend install",
+  "installCommand": "npm install --legacy-peer-deps && npm --prefix frontend install --legacy-peer-deps",
   "buildCommand": "npx prisma generate --schema=backend/prisma/schema.prisma && npm --prefix frontend run build",
   "outputDirectory": "frontend/dist",
   "rewrites": [
