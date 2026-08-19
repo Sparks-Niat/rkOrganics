@@ -10,6 +10,11 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const categories = await prisma.category.findMany({
+      include: {
+        _count: {
+          select: { medicines: true }
+        }
+      },
       orderBy: {
         displayOrder: 'asc',
       },
@@ -214,10 +219,19 @@ router.delete('/:id', protect, async (req, res) => {
 
     const existingCategory = await prisma.category.findUnique({
       where: { id: categoryId },
+      include: {
+        _count: {
+          select: { medicines: true }
+        }
+      }
     });
 
     if (!existingCategory) {
       return res.status(404).json({ message: 'Category not found' });
+    }
+
+    if (existingCategory._count.medicines > 0) {
+      return res.status(400).json({ message: 'Category contains medicines and cannot be deleted' });
     }
 
     await prisma.category.delete({
@@ -225,7 +239,7 @@ router.delete('/:id', protect, async (req, res) => {
     });
 
     req.app.get('io')?.emit('website:data-updated', { type: 'categories' });
-    res.json({ message: 'Category and all its medicines deleted successfully' });
+    res.json({ message: 'Category deleted successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error deleting category' });

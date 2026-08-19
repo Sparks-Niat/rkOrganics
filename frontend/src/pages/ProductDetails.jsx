@@ -196,11 +196,11 @@ export default function ProductDetails() {
               </div>
 
               <h1 className="font-display font-bold text-2xl sm:text-3xl text-primary-955 leading-tight">
-                {medicine.teluguName}
+                {medicine.englishName || medicine.teluguName}
               </h1>
-              {medicine.englishName && (
+              {medicine.englishName && medicine.teluguName && (
                 <h2 className="text-sand-500 font-bold text-lg">
-                  {medicine.englishName}
+                  {medicine.teluguName}
                 </h2>
               )}
               {medicine.quantity && (

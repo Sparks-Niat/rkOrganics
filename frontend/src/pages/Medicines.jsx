@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Search, Phone, Eye, Heart, SlidersHorizontal, ShoppingBag, ShieldAlert } from 'lucide-react';
+import { Search, Phone, Eye, Heart, SlidersHorizontal, ShoppingBag, ShieldAlert, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import { api } from '../utils/api';
 import { useSocket } from '../context/SocketContext';
 
@@ -84,15 +84,16 @@ export default function Medicines() {
   }, [socket]);
 
   const getCategorySlug = (category) => {
-    const name = category.englishName.toLowerCase();
+    if (!category || !category.englishName) return '';
+    const name = category.englishName.toLowerCase().trim();
     if (name.includes('asthma')) return 'asthma-dust-allergy';
     if (name.includes('urinary')) return 'urinary-heat';
     if (name.includes('gastric')) return 'gastric';
     if (name.includes('psoriasis')) return 'psoriasis-skin-disorders';
-    if (name.includes('sexual')) return 'sexual-health';
-    if (name.includes('pain')) return 'pain';
+    if (name.includes('sexual')) return 'sexual-wellness';
+    if (name.includes('pain')) return 'pain-relief';
     
-    return name.replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').trim();
+    return name.replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '').trim();
   };
 
   const isCategorySelected = (category) => {
@@ -149,7 +150,7 @@ export default function Medicines() {
     }
 
     return true;
-  });
+  });  const currentCat = categorySlug ? categories.find(c => getCategorySlug(c) === categorySlug) : null;
 
   return (
     <div className="flex flex-col min-h-screen bg-sand-50/30">
@@ -162,7 +163,7 @@ export default function Medicines() {
             Ayurvedic Medicines & Formulations
           </h1>
           <p className="text-primary-200 text-sm sm:text-base max-w-xl mx-auto">
-            Browse our range of pure, organic supplements and remedies. Order securely directly on WhatsApp.
+            Experience the healing power of nature. Discover authentic formulations and order securely via WhatsApp.
           </p>
         </div>
       </section>
@@ -170,201 +171,418 @@ export default function Medicines() {
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow space-y-8">
         
-        {/* Search & Category Filter Section */}
-        <div className="flex flex-col lg:flex-row gap-4 justify-between items-center bg-white p-4 rounded-2xl border border-primary-100 shadow-xs">
-          
-          {/* Search bar */}
-          <div className="relative w-full lg:max-w-xs">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sand-400" size={18} />
-            <input
-              type="text"
-              placeholder="Search medicines..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-sand-50 border border-primary-100 rounded-xl focus:outline-hidden focus:border-primary-500 focus:ring-1 focus:ring-primary-500 text-sm"
-            />
-          </div>
-
-          {/* Category Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto py-1 scrollbar-thin">
-            <SlidersHorizontal size={16} className="text-sand-400 shrink-0 hidden xl:block" />
-            
-            {/* All Medicines Option */}
-            <button
-              onClick={() => navigate('/medicines')}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all shrink-0 cursor-pointer ${
-                !categorySlug
-                  ? 'bg-primary-600 text-white shadow-sm font-bold'
-                  : 'bg-sand-50 text-sand-700 hover:bg-primary-50 hover:text-primary-700'
-              }`}
-            >
-              <span>All Medicines</span>
-            </button>
-
-            {categories.map((cat) => {
-              const selected = isCategorySelected(cat);
-              const slug = getCategorySlug(cat);
-              return (
+        {/* CASE 1: Category Slug is specified */}
+        {categorySlug ? (
+          !currentCat ? (
+            /* Category not found view */
+            <div className="text-center py-20 bg-white rounded-3xl border border-primary-100 shadow-xs max-w-md mx-auto p-8 flex flex-col items-center">
+              <ShieldAlert size={48} className="text-red-500 mb-4" />
+              <h3 className="font-display font-bold text-xl text-primary-950">Category Not Found</h3>
+              <p className="text-sand-500 text-sm mt-2 mb-6">
+                The medicine category you are looking for does not exist or has been disabled.
+              </p>
+              <button
+                onClick={() => navigate('/medicines')}
+                className="bg-primary-600 hover:bg-primary-700 text-white font-medium px-6 py-2.5 rounded-full transition-all flex items-center gap-2 cursor-pointer border-none"
+              >
+                <ArrowLeft size={16} />
+                <span>Back to Categories</span>
+              </button>
+            </div>
+          ) : (
+            /* Valid category page */
+            <div className="space-y-8">
+              {/* Back to Categories button */}
+              <div>
                 <button
-                  key={cat.id}
-                  onClick={() => navigate(`/medicines/${slug}`)}
-                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all shrink-0 cursor-pointer ${
-                    selected
-                      ? 'bg-primary-600 text-white shadow-sm font-bold'
-                      : 'bg-sand-50 text-sand-700 hover:bg-primary-50 hover:text-primary-700'
-                  }`}
+                  onClick={() => navigate('/medicines')}
+                  className="inline-flex items-center gap-2 text-primary-800 hover:text-primary-950 font-bold text-sm transition-colors cursor-pointer bg-white px-4 py-2 rounded-xl border border-primary-100/50 shadow-2xs border-none"
                 >
-                  <span>{cat.englishName}</span>
+                  <ArrowLeft size={16} />
+                  <span>Back to Categories</span>
                 </button>
-              );
-            })}
-          </div>
-
-        </div>
-
-        {/* Dynamic Category Description Title (when category is selected) */}
-        {categorySlug && categories.some(isCategorySelected) && (
-          (() => {
-            const currentCat = categories.find(isCategorySelected);
-            return (
-              <div className="bg-primary-50/60 p-6 rounded-2xl border border-primary-100/50 space-y-2">
-                <h2 className="font-display font-bold text-xl text-primary-955">{currentCat.englishName}</h2>
-                {currentCat.englishSubtitle && (
-                  <p className="text-xs font-semibold text-primary-700">
-                    {currentCat.englishSubtitle}
-                  </p>
-                )}
-                {currentCat.description && (
-                  <p className="text-sand-650 text-xs sm:text-sm leading-relaxed mt-1">{currentCat.description}</p>
-                )}
               </div>
-            );
-          })()
-        )}
 
-        {/* Medicines Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </div>
-        ) : filteredMedicines.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-primary-100/50 shadow-xs flex flex-col items-center justify-center p-8">
-            <ShoppingBag size={48} className="text-sand-300 mb-4 stroke-1" />
-            <h3 className="font-display font-bold text-xl text-primary-950">No Medicines Found</h3>
-            <p className="text-sand-500 text-sm mt-1 max-w-sm">
-              We couldn't find any products matching your selection. Try searching for something else or clear filters.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 stagger-list">
-            {filteredMedicines.map((medicine) => {
-              const isOutOfStock = medicine.availability === 'OUT_OF_STOCK';
-              
-              return (
-                <div 
-                  key={medicine.id} 
-                  className={`bg-white rounded-2xl overflow-hidden border border-primary-100 shadow-xs hover:shadow-md transition-all flex flex-col h-full group ${
-                    isOutOfStock ? 'opacity-85' : 'hover:-translate-y-1 duration-300'
-                  }`}
-                >
-                  
-                  {/* Image wrapper */}
-                  <Link to={`/product/${medicine.slug}`} className="h-56 overflow-hidden relative bg-primary-50 border-b border-primary-50 block">
-                    {medicine.imageUrl ? (
-                      <img
-                        src={medicine.imageUrl}
-                        alt={medicine.englishName || medicine.teluguName}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-primary-300">
-                        <Heart size={40} className="stroke-1" />
-                        <span className="text-[10px] font-semibold mt-2">R.K. Ayurveda</span>
-                      </div>
-                    )}
-                    
-                    {/* Stock badge */}
-                    <span className={`absolute top-4 right-4 text-xs px-2.5 py-1 rounded-full font-bold shadow-xs border ${
-                      isOutOfStock 
-                        ? 'bg-rose-50 text-rose-700 border-rose-100' 
-                        : 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                    }`}>
-                      {isOutOfStock ? 'Out of Stock' : 'Available'}
-                    </span>
+              {/* Category details block */}
+              <div className="bg-primary-950 text-white p-8 rounded-3xl border border-primary-900 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+                <div className="space-y-3 relative z-10">
+                  <h2 className="font-display font-bold text-2xl sm:text-3xl text-white">{currentCat.englishName}</h2>
+                  {currentCat.teluguName && (
+                    <p className="text-primary-200 text-sm font-semibold">
+                      {currentCat.teluguName}
+                    </p>
+                  )}
+                  {currentCat.description && (
+                    <p className="text-primary-100/90 text-sm leading-relaxed mt-2 max-w-3xl">{currentCat.description}</p>
+                  )}
+                  <span className="inline-block bg-primary-800/80 text-accent-400 text-xs px-3 py-1 rounded-full font-bold border border-primary-700 mt-2">
+                    {filteredMedicines.length} {filteredMedicines.length === 1 ? 'Medicine' : 'Medicines'}
+                  </span>
+                </div>
+              </div>
 
-                    {/* Quantity Badge */}
-                    {medicine.quantity && (
-                      <span className="absolute bottom-4 left-4 bg-primary-900/90 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-primary-800">
-                        {medicine.quantity}
-                      </span>
-                    )}
-                  </Link>
+              {/* Category-specific Search */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white p-4 rounded-2xl border border-primary-100 shadow-xs">
+                <div className="relative w-full sm:max-w-xs">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sand-400" size={18} />
+                  <input
+                    type="text"
+                    placeholder={`Search within ${currentCat.englishName}...`}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-sand-50 border border-primary-100 rounded-xl focus:outline-hidden focus:border-primary-500 focus:ring-1 focus:ring-primary-500 text-sm"
+                  />
+                </div>
+              </div>
 
-                  {/* Body Content */}
-                  <div className="p-6 flex flex-col flex-grow space-y-4 justify-between">
-                    <div className="space-y-2">
-                      {/* Categories line */}
-                      <div className="flex flex-wrap gap-1">
-                        {medicine.categories?.map(c => (
-                          <span key={c.id} className="text-[9px] bg-sand-100 text-sand-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                            {c.englishName}
+              {/* Medicines Grid */}
+              {loading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                  <SkeletonCard />
+                  <SkeletonCard />
+                  <SkeletonCard />
+                </div>
+              ) : filteredMedicines.length === 0 ? (
+                <div className="text-center py-20 bg-white rounded-3xl border border-primary-100/50 shadow-xs flex flex-col items-center justify-center p-8">
+                  <ShoppingBag size={48} className="text-sand-300 mb-4 stroke-1" />
+                  <h3 className="font-display font-bold text-xl text-primary-950">No Medicines Available</h3>
+                  <p className="text-sand-500 text-sm mt-1 max-w-sm">
+                    {searchQuery ? "No products found matching your search in this category." : "No medicines available in this category yet."}
+                  </p>
+                  <button
+                    onClick={() => navigate('/medicines')}
+                    className="bg-primary-600 hover:bg-primary-700 text-white font-medium px-5 py-2 mt-4 rounded-full transition-all flex items-center gap-2 cursor-pointer border-none text-xs"
+                  >
+                    <ArrowLeft size={14} />
+                    <span>Back to Categories</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 stagger-list">
+                  {filteredMedicines.map((medicine) => {
+                    const isOutOfStock = medicine.availability === 'OUT_OF_STOCK';
+                    const hasDiscount = medicine.discountPrice !== null && medicine.discountPrice !== undefined;
+                    return (
+                      <div 
+                        key={medicine.id} 
+                        className={`bg-white rounded-2xl overflow-hidden border border-primary-100 shadow-xs hover:shadow-md transition-all flex flex-col h-full group ${
+                          isOutOfStock ? 'opacity-85' : 'hover:-translate-y-1 duration-300'
+                        }`}
+                      >
+                        <Link to={`/product/${medicine.slug}`} className="h-56 overflow-hidden relative bg-primary-50 border-b border-primary-50 block">
+                          {medicine.imageUrl ? (
+                            <img
+                              src={medicine.imageUrl}
+                              alt={medicine.englishName || medicine.teluguName}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-primary-300">
+                              <Heart size={40} className="stroke-1" />
+                              <span className="text-[10px] font-semibold mt-2">R.K. Ayurveda</span>
+                            </div>
+                          )}
+                          <span className={`absolute top-4 right-4 text-xs px-2.5 py-1 rounded-full font-bold shadow-xs border ${
+                            isOutOfStock 
+                              ? 'bg-rose-50 text-rose-700 border-rose-100' 
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                          }`}>
+                            {isOutOfStock ? 'Out of Stock' : 'Available'}
                           </span>
-                        ))}
-                      </div>
+                          {medicine.quantity && (
+                            <span className="absolute bottom-4 left-4 bg-primary-900/90 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-primary-800">
+                              {medicine.quantity}
+                            </span>
+                          )}
+                        </Link>
 
-                      <Link to={`/product/${medicine.slug}`} className="block">
-                        <h3 className="font-display font-bold text-lg text-primary-955 transition-colors group-hover:text-primary-800 leading-tight">
-                          {medicine.teluguName}
-                        </h3>
-                        {medicine.englishName && (
-                          <h4 className="text-sand-500 font-medium text-sm mt-0.5">
-                            {medicine.englishName}
-                          </h4>
+                        <div className="p-6 flex flex-col flex-grow space-y-4 justify-between">
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap gap-1">
+                              {medicine.categories?.map(c => (
+                                <span key={c.id} className="text-[9px] bg-sand-100 text-sand-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                                  {c.englishName}
+                                </span>
+                              ))}
+                            </div>
+                            <Link to={`/product/${medicine.slug}`} className="block">
+                              <h3 className="font-display font-bold text-lg text-primary-955 transition-colors group-hover:text-primary-800 leading-tight">
+                                {medicine.englishName || medicine.teluguName}
+                              </h3>
+                              {medicine.englishName && medicine.teluguName && (
+                                <h4 className="text-sand-500 font-semibold text-xs mt-0.5">
+                                  {medicine.teluguName}
+                                </h4>
+                              )}
+                            </Link>
+                            <p className="text-sand-650 text-xs sm:text-sm line-clamp-2 leading-relaxed">
+                              {medicine.shortDescription || medicine.description}
+                            </p>
+                          </div>
+
+                          <div className="space-y-4 pt-3 border-t border-primary-50">
+                            <div className="flex justify-between items-center">
+                              <span className="text-primary-850 font-display font-bold text-xl">
+                                ₹{medicine.discountPrice || medicine.price}
+                              </span>
+                              <Link 
+                                to={`/product/${medicine.slug}`}
+                                className="inline-flex items-center gap-1 text-xs text-primary-700 font-bold hover:text-primary-900"
+                              >
+                                <Eye size={14} />
+                                <span>View Details</span>
+                              </Link>
+                            </div>
+                            {medicine.whatsappEnabled && (
+                              <button
+                                onClick={(e) => handleWhatsAppOrder(e, medicine)}
+                                disabled={isOutOfStock}
+                                className={`w-full inline-flex items-center justify-center gap-2 font-medium py-2.5 rounded-xl transition-all text-xs cursor-pointer border-none ${
+                                  isOutOfStock
+                                    ? 'bg-sand-200 text-sand-500 cursor-not-allowed border border-sand-300'
+                                    : 'bg-primary-600 hover:bg-primary-700 text-white shadow-xs hover:shadow-md'
+                                }`}
+                              >
+                                <Phone size={14} />
+                                <span>{isOutOfStock ? 'Out of Stock' : 'Order on WhatsApp'}</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        ) : searchQuery.trim() !== '' ? (
+          /* CASE 2: No Category is selected, but search has text -> show global search results */
+          <div className="space-y-8">
+            <div>
+              <button
+                onClick={() => setSearchQuery('')}
+                className="inline-flex items-center gap-2 text-primary-800 hover:text-primary-950 font-bold text-sm transition-colors cursor-pointer bg-white px-4 py-2 rounded-xl border border-primary-100/50 shadow-2xs border-none"
+              >
+                <ArrowLeft size={16} />
+                <span>Back to Categories</span>
+              </button>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border border-primary-100 shadow-xs flex flex-col md:flex-row justify-between items-center gap-4">
+              <h2 className="text-xl font-bold text-primary-955 font-display">
+                Search Results for "{searchQuery}"
+              </h2>
+              <div className="relative w-full md:max-w-xs">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sand-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search medicines..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-sand-50 border border-primary-100 rounded-xl focus:outline-hidden focus:border-primary-500 text-sm"
+                />
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+              </div>
+            ) : filteredMedicines.length === 0 ? (
+              <div className="text-center py-20 bg-white rounded-3xl border border-primary-100/50 shadow-xs flex flex-col items-center justify-center p-8">
+                <ShoppingBag size={48} className="text-sand-300 mb-4 stroke-1" />
+                <h3 className="font-display font-bold text-xl text-primary-950">No Medicines Found</h3>
+                <p className="text-sand-500 text-sm mt-1 max-w-sm">
+                  We couldn't find any products matching "{searchQuery}" across all categories.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 stagger-list">
+                {filteredMedicines.map((medicine) => {
+                  const isOutOfStock = medicine.availability === 'OUT_OF_STOCK';
+                  return (
+                    <div 
+                      key={medicine.id} 
+                      className={`bg-white rounded-2xl overflow-hidden border border-primary-100 shadow-xs hover:shadow-md transition-all flex flex-col h-full group ${
+                        isOutOfStock ? 'opacity-85' : 'hover:-translate-y-1 duration-300'
+                      }`}
+                    >
+                      <Link to={`/product/${medicine.slug}`} className="h-56 overflow-hidden relative bg-primary-50 border-b border-primary-50 block">
+                        {medicine.imageUrl ? (
+                          <img
+                            src={medicine.imageUrl}
+                            alt={medicine.englishName || medicine.teluguName}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center text-primary-300">
+                            <Heart size={40} className="stroke-1" />
+                            <span className="text-[10px] font-semibold mt-2">R.K. Ayurveda</span>
+                          </div>
+                        )}
+                        <span className={`absolute top-4 right-4 text-xs px-2.5 py-1 rounded-full font-bold shadow-xs border ${
+                          isOutOfStock 
+                            ? 'bg-rose-50 text-rose-700 border-rose-100' 
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                        }`}>
+                          {isOutOfStock ? 'Out of Stock' : 'Available'}
+                        </span>
+                        {medicine.quantity && (
+                          <span className="absolute bottom-4 left-4 bg-primary-900/90 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-primary-800">
+                            {medicine.quantity}
+                          </span>
                         )}
                       </Link>
-                      
-                      <p className="text-sand-650 text-xs sm:text-sm line-clamp-2 leading-relaxed">
-                        {medicine.shortDescription || medicine.description}
-                      </p>
-                    </div>
 
-                    <div className="space-y-4 pt-3 border-t border-primary-50">
-                      <div className="flex justify-between items-center">
-                        <span className="text-primary-850 font-display font-bold text-xl">
-                          ₹{medicine.discountPrice || medicine.price}
+                      <div className="p-6 flex flex-col flex-grow space-y-4 justify-between">
+                        <div className="space-y-2">
+                          <div className="flex flex-wrap gap-1">
+                            {medicine.categories?.map(c => (
+                              <span key={c.id} className="text-[9px] bg-sand-100 text-sand-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                                {c.englishName}
+                              </span>
+                            ))}
+                          </div>
+                          <Link to={`/product/${medicine.slug}`} className="block">
+                            <h3 className="font-display font-bold text-lg text-primary-955 transition-colors group-hover:text-primary-800 leading-tight">
+                              {medicine.englishName || medicine.teluguName}
+                            </h3>
+                            {medicine.englishName && medicine.teluguName && (
+                              <h4 className="text-sand-500 font-semibold text-xs mt-0.5">
+                                {medicine.teluguName}
+                              </h4>
+                            )}
+                          </Link>
+                          <p className="text-sand-650 text-xs sm:text-sm line-clamp-2 leading-relaxed">
+                            {medicine.shortDescription || medicine.description}
+                          </p>
+                        </div>
+
+                        <div className="space-y-4 pt-3 border-t border-primary-50">
+                          <div className="flex justify-between items-center">
+                            <span className="text-primary-850 font-display font-bold text-xl">
+                              ₹{medicine.discountPrice || medicine.price}
+                            </span>
+                            <Link 
+                              to={`/product/${medicine.slug}`}
+                              className="inline-flex items-center gap-1 text-xs text-primary-700 font-bold hover:text-primary-900"
+                            >
+                              <Eye size={14} />
+                              <span>View Details</span>
+                            </Link>
+                          </div>
+                          {medicine.whatsappEnabled && (
+                            <button
+                              onClick={(e) => handleWhatsAppOrder(e, medicine)}
+                              disabled={isOutOfStock}
+                              className={`w-full inline-flex items-center justify-center gap-2 font-medium py-2.5 rounded-xl transition-all text-xs cursor-pointer border-none ${
+                                isOutOfStock
+                                  ? 'bg-sand-200 text-sand-500 cursor-not-allowed border border-sand-300'
+                                  : 'bg-primary-600 hover:bg-primary-700 text-white shadow-xs hover:shadow-md'
+                              }`}
+                            >
+                              <Phone size={14} />
+                              <span>{isOutOfStock ? 'Out of Stock' : 'Order on WhatsApp'}</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* CASE 3: Category Slug is not specified, search is empty -> show categories explorer screen first */
+          <div className="space-y-10">
+            <div className="text-center space-y-3 max-w-xl mx-auto">
+              <span className="text-accent-600 text-xs sm:text-sm font-bold uppercase tracking-widest">Our Formulations</span>
+              <h2 className="font-display font-bold text-3xl text-primary-955">Choose a Category to Explore</h2>
+              <p className="text-sand-500 text-sm sm:text-base leading-relaxed">
+                Select one of our traditional Ayurvedic medicine categories to view the specific formulations, ingredients, and usage details.
+              </p>
+            </div>
+
+            {/* Global Search Input on Categories page */}
+            <div className="flex justify-center">
+              <div className="relative w-full max-w-md">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sand-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search across all medicines..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-primary-100 rounded-2xl shadow-xs focus:outline-hidden focus:border-primary-500 focus:ring-1 focus:ring-primary-500 text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Categories Selection Grid */}
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <CategorySkeleton />
+                <CategorySkeleton />
+                <CategorySkeleton />
+              </div>
+            ) : categories.length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-primary-200">
+                <p className="text-sand-500 font-medium">No categories available at the moment.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {categories.map((cat) => {
+                  const count = cat._count?.medicines || 0;
+                  const slug = getCategorySlug(cat);
+                  return (
+                    <Link
+                      key={cat.id}
+                      to={`/medicines/${slug}`}
+                      className="bg-white rounded-3xl overflow-hidden border border-primary-100/50 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col h-full group hover:-translate-y-1"
+                    >
+                      <div className="h-48 overflow-hidden relative bg-primary-50">
+                        {cat.imageUrl ? (
+                          <img
+                            src={cat.imageUrl}
+                            alt={cat.englishName}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-primary-350 bg-primary-50">
+                            <Sparkles size={48} className="stroke-1" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60"></div>
+                        <span className="absolute bottom-4 left-4 bg-primary-950/90 backdrop-blur-xs text-accent-400 text-xs px-3 py-1.5 rounded-full font-bold shadow-xs border border-primary-800">
+                          {count} {count === 1 ? 'Medicine' : 'Medicines'}
                         </span>
-                        
-                        <Link 
-                          to={`/product/${medicine.slug}`}
-                          className="inline-flex items-center gap-1 text-xs text-primary-700 font-bold hover:text-primary-900"
-                        >
-                          <Eye size={14} />
-                          <span>View Details</span>
-                        </Link>
                       </div>
 
-                      {medicine.whatsappEnabled && (
-                        <button
-                          onClick={(e) => handleWhatsAppOrder(e, medicine)}
-                          disabled={isOutOfStock}
-                          className={`w-full inline-flex items-center justify-center gap-2 font-medium py-2.5 rounded-xl transition-all text-xs cursor-pointer ${
-                            isOutOfStock
-                              ? 'bg-sand-200 text-sand-500 cursor-not-allowed border border-sand-300'
-                              : 'bg-primary-600 hover:bg-primary-700 text-white shadow-xs hover:shadow-md'
-                          }`}
-                        >
-                          <Phone size={14} />
-                          <span>{isOutOfStock ? 'Out of Stock' : 'Order on WhatsApp'}</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                </div>
-              );
-            })}
+                      <div className="p-6 flex flex-col flex-grow justify-between space-y-4">
+                        <div className="space-y-1.5">
+                          <h3 className="font-display font-bold text-lg text-primary-955 group-hover:text-primary-800 transition-colors">
+                            {cat.englishName}
+                          </h3>
+                          {cat.teluguName && (
+                            <p className="text-primary-750 text-xs font-semibold leading-relaxed">
+                              {cat.teluguName}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center text-accent-600 font-bold text-sm pt-2 group-hover:text-accent-700 transition-colors">
+                          <span>View Medicines</span>
+                          <ArrowRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 

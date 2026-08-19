@@ -21,6 +21,31 @@ const SkeletonCard = () => (
   </div>
 );
 
+const getCategorySlug = (category) => {
+  if (!category) return '';
+  const name = (category.englishName || category.name || '').toLowerCase().trim();
+  if (name.includes('asthma')) return 'asthma-dust-allergy';
+  if (name.includes('urinary')) return 'urinary-heat';
+  if (name.includes('gastric')) return 'gastric';
+  if (name.includes('psoriasis')) return 'psoriasis-skin-disorders';
+  if (name.includes('sexual')) return 'sexual-wellness';
+  if (name.includes('pain')) return 'pain-relief';
+  return name.replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '').trim();
+};
+
+const CategorySkeleton = () => (
+  <div className="bg-white rounded-3xl overflow-hidden border border-primary-100/50 shadow-xs flex flex-col h-full animate-pulse">
+    <div className="h-48 bg-sand-200"></div>
+    <div className="p-6 space-y-3 flex-grow flex flex-col justify-between">
+      <div className="space-y-2">
+        <div className="h-6 bg-sand-200 rounded-md w-3/4"></div>
+        <div className="h-4 bg-sand-150 rounded-md w-1/2"></div>
+      </div>
+      <div className="h-4 bg-sand-100 rounded-md w-1/3"></div>
+    </div>
+  </div>
+);
+
 export default function Home() {
   const [settings, setSettings] = useState({
     businessName: 'R.K. Ayurveda',
@@ -47,6 +72,7 @@ export default function Home() {
     defaultMessage: 'Hello, I would like to order {medicineName}. Price: {price}. Quantity: {quantity}.',
   });
 
+  const [categories, setCategories] = useState([]);
   const [featuredMedicines, setFeaturedMedicines] = useState([]);
   const [benefits, setBenefits] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
@@ -61,11 +87,13 @@ export default function Home() {
       api.medicines.getAll(),
       api.benefits.getAll(),
       api.testimonials.getAll(),
-      api.promotions.getAll()
-    ]).then(([settingsData, contactData, whatsappData, medicinesData, benefitsData, testimonialsData, promotionsData]) => {
+      api.promotions.getAll(),
+      api.categories.getAll()
+    ]).then(([settingsData, contactData, whatsappData, medicinesData, benefitsData, testimonialsData, promotionsData, categoriesData]) => {
       if (settingsData) setSettings(settingsData);
       if (contactData) setContact(contactData);
       if (whatsappData) setWhatsappSettings(whatsappData);
+      if (categoriesData) setCategories(categoriesData.filter(c => c.isEnabled));
       
       // Filter featured & active medicines: limit 3
       if (medicinesData) {
@@ -127,7 +155,7 @@ export default function Home() {
     if (!socket) return;
 
     const handleUpdate = (data) => {
-      const homeTypes = ['settings', 'contact', 'whatsapp', 'medicines', 'benefits', 'testimonials', 'promotions'];
+      const homeTypes = ['settings', 'contact', 'whatsapp', 'medicines', 'benefits', 'testimonials', 'promotions', 'categories'];
       if (homeTypes.includes(data.type)) {
         console.log(`Home page data updated (${data.type}), refreshing...`);
         loadHomeData();
@@ -274,12 +302,85 @@ export default function Home() {
                   )}
                 </div>
                 <div>
-                  <h3 className="font-display font-bold text-xl text-primary-950 mb-2">{benefit.title}</h3>
+                  <h3 className="font-display font-bold text-xl text-primary-955 mb-2">{benefit.title}</h3>
                   <p className="text-sand-600 text-sm leading-relaxed">{benefit.description}</p>
                 </div>
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Medicine Categories Section */}
+      <section className="py-20 bg-sand-50/50 border-t border-b border-primary-100/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center space-y-3 mb-16">
+            <span className="text-accent-600 text-sm font-bold uppercase tracking-widest">Our Formulations</span>
+            <h2 className="font-display font-bold text-3xl sm:text-4xl text-primary-955">Medicine Categories</h2>
+            <div className="w-16 h-1 bg-accent-500 mx-auto rounded-full mt-4"></div>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+              <CategorySkeleton />
+              <CategorySkeleton />
+              <CategorySkeleton />
+              <CategorySkeleton />
+            </div>
+          ) : categories.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-primary-200">
+              <p className="text-sand-500 font-medium">No categories available at the moment.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+              {categories.map((category) => {
+                const count = category._count?.medicines || 0;
+                const slug = getCategorySlug(category);
+                return (
+                  <Link
+                    key={category.id}
+                    to={`/medicines/${slug}`}
+                    className="bg-white rounded-3xl overflow-hidden border border-primary-100/50 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col h-full group hover:-translate-y-1"
+                  >
+                    <div className="h-48 overflow-hidden relative bg-primary-50">
+                      {category.imageUrl ? (
+                        <img
+                          src={category.imageUrl}
+                          alt={category.englishName}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-primary-350 bg-primary-50">
+                          <Sparkles size={48} className="stroke-1" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60"></div>
+                      <span className="absolute bottom-4 left-4 bg-primary-950/90 backdrop-blur-xs text-accent-400 text-xs px-3 py-1.5 rounded-full font-bold shadow-xs border border-primary-800">
+                        {count} {count === 1 ? 'Medicine' : 'Medicines'}
+                      </span>
+                    </div>
+
+                    <div className="p-6 flex flex-col flex-grow justify-between space-y-4">
+                      <div className="space-y-1.5">
+                        <h3 className="font-display font-bold text-lg text-primary-955 group-hover:text-primary-800 transition-colors">
+                          {category.englishName}
+                        </h3>
+                        {category.teluguName && (
+                          <p className="text-primary-750 text-xs font-semibold leading-relaxed">
+                            {category.teluguName}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center text-accent-600 font-bold text-sm pt-2 group-hover:text-accent-700 transition-colors">
+                        <span>View Medicines</span>
+                        <ArrowRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
@@ -337,11 +438,11 @@ export default function Home() {
                     <div className="p-6 flex flex-col flex-grow space-y-4 justify-between">
                       <div className="space-y-2">
                         <h3 className="font-display font-bold text-lg text-primary-955 group-hover:text-primary-800 transition-colors leading-tight">
-                          {medicine.teluguName}
+                          {medicine.englishName || medicine.teluguName}
                         </h3>
-                        {medicine.englishName && (
+                        {medicine.englishName && medicine.teluguName && (
                           <h4 className="text-sand-500 font-semibold text-xs mt-0.5">
-                            {medicine.englishName}
+                            {medicine.teluguName}
                           </h4>
                         )}
                         <p className="text-sand-600 text-sm line-clamp-3">
