@@ -1,11 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import * as LucideIcons from 'lucide-react';
 import { api } from '../utils/api';
 import { useSocket } from '../context/SocketContext';
+import {
+  Leaf,
+  BookOpen,
+  Award,
+  ShieldCheck,
+  Sparkles,
+  Compass,
+  Heart,
+  User,
+  Phone,
+  ShoppingBag,
+  CheckCircle,
+  CheckCircle2,
+  HeartHandshake,
+  ShieldAlert
+} from 'lucide-react';
+
+const iconMap = {
+  Leaf,
+  BookOpen,
+  Award,
+  ShieldCheck,
+  Sparkles,
+  Compass,
+  Heart,
+  User,
+  Phone,
+  ShoppingBag,
+  CheckCircle,
+  CheckCircle2,
+  HeartHandshake,
+  ShieldAlert
+};
 
 // Helper to safely render icons by string name
 const renderIcon = (iconName, className = "text-primary-600", size = 24) => {
-  const IconComponent = LucideIcons[iconName] || LucideIcons.Leaf;
+  const IconComponent = iconMap[iconName] || Leaf;
   return <IconComponent className={className} size={size} />;
 };
 
@@ -24,8 +56,72 @@ const renderParagraphs = (text, className = "text-sand-800 leading-relaxed text-
   ));
 };
 
+const DEFAULT_FALLBACK_DATA = {
+  isEnabled: true,
+  heading: 'Rooted in Nature. Inspired by Ayurveda.',
+  aboutIntro: 'RK Organics brings the timeless wisdom of Ayurveda together with carefully selected natural ingredients to provide authentic, trusted and thoughtfully prepared herbal remedies.',
+  ourStory: 'RK Organics is built on a simple belief — nature has always provided powerful ways to support everyday wellbeing. Inspired by traditional Ayurvedic knowledge, we are committed to bringing natural remedies closer to modern families while respecting the wisdom and practices passed down through generations.',
+  storyImageUrl: 'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?auto=format&fit=crop&w=800&q=80',
+  mission: 'Our mission is to offer thoughtfully prepared Ayurvedic remedies using quality ingredients, responsible practices and a commitment to authenticity, transparency and customer trust.',
+  vision: 'To become a trusted name in natural and Ayurvedic wellness by making authentic herbal remedies accessible to families while preserving the timeless wisdom of nature.',
+  philosophyIntro: 'Our approach is guided by timeless natural wisdom.',
+  qualityIntro: 'We ensure transparency and care in every product.',
+  whyChooseUsIntro: 'Why customers trust R.K. Ayurveda.',
+  valuesIntro: 'The core principles that guide us.',
+  galleryTitle: 'Inside R.K. Ayurveda',
+  galleryIntro: 'Take a look at our daily operations, products, and ingredients.',
+  certificationsTitle: 'Our Certifications & Trust Standards',
+  certificationsIntro: 'Genuine business standards and registrations.',
+  certificationsEnabled: false,
+  ctaTitle: 'Discover the Goodness of Ayurveda',
+  ctaButtonText: 'Explore Medicines',
+  ctaButtonLink: '/medicines',
+  sections: [
+    { id: 'hero', isEnabled: true, displayOrder: 0 },
+    { id: 'story', isEnabled: true, displayOrder: 1 },
+    { id: 'mission_vision', isEnabled: true, displayOrder: 2 },
+    { id: 'philosophy', isEnabled: true, displayOrder: 3 },
+    { id: 'quality', isEnabled: true, displayOrder: 4 },
+    { id: 'why_choose_us', isEnabled: true, displayOrder: 5 },
+    { id: 'values', isEnabled: true, displayOrder: 6 },
+    { id: 'gallery', isEnabled: true, displayOrder: 7 },
+    { id: 'certifications', isEnabled: false, displayOrder: 8 },
+    { id: 'cta', isEnabled: true, displayOrder: 9 }
+  ],
+  philosophyItems: [
+    { id: 1, icon: 'Leaf', title: 'Nature First', description: 'We believe in respecting the natural ingredients that form the foundation of Ayurvedic wellness.', isEnabled: true },
+    { id: 2, icon: 'BookOpen', title: 'Authentic Ayurveda', description: 'We value traditional Ayurvedic knowledge and strive to preserve its authentic spirit.', isEnabled: true },
+    { id: 3, icon: 'Award', title: 'Quality Matters', description: 'We focus on carefully selected ingredients and responsible preparation.', isEnabled: true },
+    { id: 4, icon: 'ShieldCheck', title: 'Trust & Transparency', description: 'We believe lasting relationships are built through honesty, consistency and trust.', isEnabled: true }
+  ],
+  qualityItems: [
+    { id: 1, icon: 'Leaf', title: 'Carefully selected ingredients', description: 'Locally grown organic herbs gathered at peak potency.', isEnabled: true },
+    { id: 2, icon: 'BookOpen', title: 'Authentic Ayurvedic approach', description: 'Prepared according to classic texts and traditions.', isEnabled: true },
+    { id: 3, icon: 'Award', title: 'Quality-focused preparation', description: 'Strict quality control at every step of processing.', isEnabled: true },
+    { id: 4, icon: 'ShieldCheck', title: 'Transparent information', description: 'Clear sourcing records and clean lists of ingredients.', isEnabled: true },
+    { id: 5, icon: 'User', title: 'Customer-first mindset', description: 'Dedicated wellness support and customized guidance.', isEnabled: true }
+  ],
+  whyChooseUsItems: [
+    { id: 1, icon: 'Leaf', title: 'Natural Approach', description: 'Inspired by the goodness of nature.', isEnabled: true },
+    { id: 2, icon: 'BookOpen', title: 'Ayurvedic Wisdom', description: 'Rooted in traditional Ayurvedic principles.', isEnabled: true },
+    { id: 3, icon: 'Award', title: 'Quality Focus', description: 'Committed to thoughtful product preparation.', isEnabled: true },
+    { id: 4, icon: 'ShieldCheck', title: 'Trusted Experience', description: 'Built around customer confidence and satisfaction.', isEnabled: true }
+  ],
+  valueItems: [
+    { id: 1, icon: 'Award', title: 'Trust', description: 'We earn trust through transparency and reliable preparations.', isEnabled: true },
+    { id: 2, icon: 'ShieldCheck', title: 'Purity', description: 'Uncompromising standard of clean chemical-free remedies.', isEnabled: true },
+    { id: 3, icon: 'BookOpen', title: 'Heritage', description: 'Honoring and practicing ancient, authentic Vedic wisdom.', isEnabled: true }
+  ],
+  galleryImages: [
+    { id: 1, imageUrl: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80', title: 'Traditional Wellness Prep', description: 'Authentic herbal oils infusion.', isEnabled: true },
+    { id: 2, imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80', title: 'Pure Botanical Sourcing', description: 'Sourcing certified organic ingredients.', isEnabled: true },
+    { id: 3, imageUrl: 'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&w=800&q=80', title: 'Apothecary Storage', description: 'Carefully preserving herb freshness.', isEnabled: true }
+  ],
+  certifications: []
+};
+
 export default function About() {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(DEFAULT_FALLBACK_DATA);
   const [contact, setContact] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,13 +133,19 @@ export default function About() {
       api.about.get(),
       api.contact.get()
     ]).then(([aboutData, contactData]) => {
-      setData(aboutData);
+      if (aboutData && aboutData.isEnabled) {
+        setData(aboutData);
+      } else {
+        console.warn('About data is disabled or null from API, loading default static fallback content.');
+        setData(DEFAULT_FALLBACK_DATA);
+      }
       setContact(contactData);
       setError(null);
     })
     .catch(err => {
-      console.error('Failed to load about data:', err);
-      setError('Failed to retrieve content. Please try again.');
+      console.error('Failed to load about data, using default static fallback content:', err);
+      setData(DEFAULT_FALLBACK_DATA);
+      setError(null); // Clear error to render fallback data instead
     })
     .finally(() => setLoading(false));
   };
@@ -63,9 +165,16 @@ export default function About() {
           api.about.get(),
           api.contact.get()
         ]).then(([aboutData, contactData]) => {
-          setData(aboutData);
+          if (aboutData && aboutData.isEnabled) {
+            setData(aboutData);
+          } else {
+            setData(DEFAULT_FALLBACK_DATA);
+          }
           setContact(contactData);
-        }).catch(err => console.error('Error refreshing content on socket event:', err));
+        }).catch(err => {
+          console.error('Error refreshing content on socket event:', err);
+          setData(DEFAULT_FALLBACK_DATA);
+        });
       }
     };
 
@@ -87,30 +196,6 @@ export default function About() {
     return (
       <div className="flex justify-center items-center min-h-[60vh] bg-sand-50">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4 min-h-[60vh] flex flex-col justify-center items-center bg-sand-50">
-        <h2 className="text-xl font-semibold text-red-700">{error}</h2>
-        <button
-          onClick={loadData}
-          className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-full transition-colors font-medium cursor-pointer"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  if (!data || !data.isEnabled) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-24 text-center space-y-4 min-h-[60vh] flex flex-col justify-center items-center bg-sand-50">
-        {renderIcon("ShieldAlert", "text-sand-400 mx-auto", 48)}
-        <h2 className="text-2xl font-bold text-primary-950 font-display">About Us Currently Unavailable</h2>
-        <p className="text-sand-600 max-w-md mx-auto">We are updating our organization details. Please check back later or contact support.</p>
       </div>
     );
   }
