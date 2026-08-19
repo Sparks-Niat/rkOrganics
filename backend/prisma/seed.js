@@ -8,18 +8,18 @@ async function main() {
 
   // 1. Create/Update Admin Account
   const existingAdmin = await prisma.admin.findUnique({
-    where: { username: 'admin' },
+    where: { email: 'admin@example.com' },
   });
 
   if (!existingAdmin) {
     const passwordHash = await bcrypt.hash('admin123', 10);
     await prisma.admin.create({
       data: {
-        username: 'admin',
+        email: 'admin@example.com',
         passwordHash,
       },
     });
-    console.log('Admin user created: admin / admin123');
+    console.log('Admin user created: admin@example.com / admin123');
   }
 
   // 2. Create Default SiteSettings

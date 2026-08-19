@@ -10,28 +10,34 @@ const router = express.Router();
 // @route   POST /api/auth/login
 // @access  Public
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
-  if (!username || !password) {
-    return res.status(400).json({ message: 'Please provide username and password' });
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
+  // Simple email format check
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ message: 'Invalid email format' });
   }
 
   try {
     const admin = await prisma.admin.findUnique({
-      where: { username },
+      where: { email },
     });
 
     if (!admin) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid email or password.' });
     }
 
     const isMatch = await bcrypt.compare(password, admin.passwordHash);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid email or password.' });
     }
 
     const token = jwt.sign(
-      { id: admin.id, username: admin.username },
+      { id: admin.id, email: admin.email },
       process.env.JWT_SECRET || 'ayurveda_secret_key_987654321',
       { expiresIn: '7d' }
     );
@@ -40,7 +46,7 @@ router.post('/login', async (req, res) => {
       token,
       admin: {
         id: admin.id,
-        username: admin.username,
+        email: admin.email,
       },
     });
   } catch (error) {
@@ -56,7 +62,7 @@ router.get('/me', protect, async (req, res) => {
   try {
     const admin = await prisma.admin.findUnique({
       where: { id: req.admin.id },
-      select: { id: true, username: true, createdAt: true },
+      select: { id: true, email: true, createdAt: true },
     });
     res.json(admin);
   } catch (error) {

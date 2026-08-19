@@ -1,17 +1,25 @@
 import React, { useState } from 'react';
-import { Lock, User, AlertCircle, ShieldAlert } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, AlertCircle, ShieldAlert } from 'lucide-react';
 import { api } from '../utils/api';
 
 export default function AdminLogin({ onLoginSuccess }) {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!username.trim() || !password.trim()) {
+    
+    if (!email.trim() || !password.trim()) {
       setError('Please fill in all fields');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
       return;
     }
 
@@ -19,7 +27,7 @@ export default function AdminLogin({ onLoginSuccess }) {
     setError('');
 
     try {
-      const data = await api.auth.login({ username, password });
+      const data = await api.auth.login({ email, password });
       
       localStorage.setItem('admin_token', data.token);
       localStorage.setItem('admin_user', JSON.stringify(data.admin));
@@ -32,7 +40,7 @@ export default function AdminLogin({ onLoginSuccess }) {
       }
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Invalid username or password');
+      setError(err.message || 'Invalid email or password.');
     } finally {
       setLoading(false);
     }
@@ -67,20 +75,20 @@ export default function AdminLogin({ onLoginSuccess }) {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             
-            {/* Username Input */}
+            {/* Email Input */}
             <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-semibold text-primary-900 block">
-                Username
+              <label htmlFor="email" className="text-sm font-semibold text-primary-900 block">
+                Email
               </label>
               <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sand-400" size={18} />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sand-400" size={18} />
                 <input
-                  id="username"
-                  type="text"
+                  id="email"
+                  type="email"
                   required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="admin"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@example.com"
                   className="w-full pl-10 pr-4 py-3 bg-sand-50 border border-primary-100 rounded-xl focus:outline-hidden focus:border-primary-500 focus:ring-1 focus:ring-primary-500 text-sm transition-all"
                 />
               </div>
@@ -95,13 +103,22 @@ export default function AdminLogin({ onLoginSuccess }) {
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sand-400" size={18} />
                 <input
                   id="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 bg-sand-50 border border-primary-100 rounded-xl focus:outline-hidden focus:border-primary-500 focus:ring-1 focus:ring-primary-500 text-sm transition-all"
+                  className="w-full pl-10 pr-12 py-3 bg-sand-50 border border-primary-100 rounded-xl focus:outline-hidden focus:border-primary-500 focus:ring-1 focus:ring-primary-500 text-sm transition-all"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-sand-400 hover:text-primary-700 focus:outline-none cursor-pointer flex items-center justify-center p-1 rounded-md hover:bg-sand-100 transition-colors"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 

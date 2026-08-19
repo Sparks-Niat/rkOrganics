@@ -15,7 +15,7 @@ export function protect(req, res, next) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'ayurveda_secret_key_987654321');
 
       // Set admin info to request
-      req.admin = { id: decoded.id, username: decoded.username };
+      req.admin = { id: decoded.id, email: decoded.email };
 
       next();
     } catch (error) {
