@@ -1,4 +1,4 @@
-const BASE_URL = ''; // Uses proxy config in vite.config.js for /api and /uploads
+const BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export async function request(url, options = {}) {
   const token = localStorage.getItem('admin_token');
