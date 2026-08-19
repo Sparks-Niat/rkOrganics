@@ -15,6 +15,9 @@ function ScrollObserver() {
   const location = useLocation();
 
   useEffect(() => {
+    // Reset scroll position to top on route change
+    window.scrollTo(0, 0);
+
     const timer = setTimeout(() => {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
