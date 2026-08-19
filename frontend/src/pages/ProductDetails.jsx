@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Phone, ArrowLeft, Heart, CheckCircle, ShieldCheck, HelpCircle, ShieldAlert } from 'lucide-react';
 import { api } from '../utils/api';
+import { useSocket } from '../context/SocketContext';
 
 export default function ProductDetails() {
   const { slug } = useParams();
@@ -14,8 +15,7 @@ export default function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    setLoading(true);
+  const loadProductDetails = () => {
     Promise.all([
       api.medicines.getBySlug(slug),
       api.whatsapp.get()
@@ -28,7 +28,40 @@ export default function ProductDetails() {
       setError(err.message || 'Failed to load medicine details');
     })
     .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    loadProductDetails();
   }, [slug]);
+
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUpdate = (data) => {
+      const matchTypes = ['medicines', 'whatsapp'];
+      if (matchTypes.includes(data.type)) {
+        console.log(`Product details updated (${data.type}), refreshing...`);
+        loadProductDetails();
+      }
+    };
+
+    socket.on('website:data-updated', handleUpdate);
+
+    const handleReconnect = () => {
+      console.log('Socket reconnected, refreshing product details...');
+      loadProductDetails();
+    };
+
+    window.addEventListener('socket_reconnected', handleReconnect);
+
+    return () => {
+      socket.off('website:data-updated', handleUpdate);
+      window.removeEventListener('socket_reconnected', handleReconnect);
+    };
+  }, [socket, slug]);
 
   const handleWhatsAppOrder = () => {
     if (!medicine) return;

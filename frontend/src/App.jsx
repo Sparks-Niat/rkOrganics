@@ -8,6 +8,7 @@ import Medicines from './pages/Medicines';
 import ProductDetails from './pages/ProductDetails';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import { SocketProvider } from './context/SocketContext';
 
 // Helper component to manage conditional layouts for client pages
 function CustomerLayout({ children }) {
@@ -46,58 +47,60 @@ function AdminRoute() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <div className="flex flex-col min-h-screen">
-        <Routes>
-          {/* Customer Facing Routes */}
-          <Route
-            path="/"
-            element={
-              <CustomerLayout>
-                <Home />
-              </CustomerLayout>
-            }
-          />
-          <Route
-            path="/about"
-            element={
-              <CustomerLayout>
-                <About />
-              </CustomerLayout>
-            }
-          />
-          <Route
-            path="/medicines"
-            element={
-              <CustomerLayout>
-                <Medicines />
-              </CustomerLayout>
-            }
-          />
-          <Route
-            path="/medicines/:categorySlug"
-            element={
-              <CustomerLayout>
-                <Medicines />
-              </CustomerLayout>
-            }
-          />
-          <Route
-            path="/product/:slug"
-            element={
-              <CustomerLayout>
-                <ProductDetails />
-              </CustomerLayout>
-            }
-          />
+    <SocketProvider>
+      <BrowserRouter>
+        <div className="flex flex-col min-h-screen">
+          <Routes>
+            {/* Customer Facing Routes */}
+            <Route
+              path="/"
+              element={
+                <CustomerLayout>
+                  <Home />
+                </CustomerLayout>
+              }
+            />
+            <Route
+              path="/about"
+              element={
+                <CustomerLayout>
+                  <About />
+                </CustomerLayout>
+              }
+            />
+            <Route
+              path="/medicines"
+              element={
+                <CustomerLayout>
+                  <Medicines />
+                </CustomerLayout>
+              }
+            />
+            <Route
+              path="/medicines/:categorySlug"
+              element={
+                <CustomerLayout>
+                  <Medicines />
+                </CustomerLayout>
+              }
+            />
+            <Route
+              path="/product/:slug"
+              element={
+                <CustomerLayout>
+                  <ProductDetails />
+                </CustomerLayout>
+              }
+            />
 
-          {/* Admin Unified Route */}
-          <Route path="/admin" element={<AdminRoute />} />
+            {/* Admin Unified Route */}
+            <Route path="/admin" element={<AdminRoute />} />
 
-          {/* Catch-all Redirect */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
-    </BrowserRouter>
+            {/* Catch-all Redirect */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </SocketProvider>
   );
 }

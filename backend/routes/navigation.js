@@ -38,6 +38,7 @@ router.post('/', protect, async (req, res) => {
         isActive: isActive !== undefined ? !!isActive : true,
       },
     });
+    req.app.get('io')?.emit('website:data-updated', { type: 'navigation' });
     res.status(201).json(navItem);
   } catch (error) {
     console.error(error);
@@ -77,6 +78,7 @@ router.put('/:id', protect, async (req, res) => {
       data,
     });
 
+    req.app.get('io')?.emit('website:data-updated', { type: 'navigation' });
     res.json(updated);
   } catch (error) {
     console.error(error);
@@ -100,6 +102,7 @@ router.delete('/:id', protect, async (req, res) => {
       where: { id: navId },
     });
 
+    req.app.get('io')?.emit('website:data-updated', { type: 'navigation' });
     res.json({ message: 'Navigation item deleted successfully' });
   } catch (error) {
     console.error(error);

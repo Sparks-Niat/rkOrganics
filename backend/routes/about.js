@@ -74,9 +74,10 @@ router.put('/', protect, async (req, res) => {
         data: {
           id: 1,
           ...data
-        },
+        }
       });
     }
+    req.app.get('io')?.emit('website:data-updated', { type: 'about' });
     res.json(about);
   } catch (error) {
     console.error(error);

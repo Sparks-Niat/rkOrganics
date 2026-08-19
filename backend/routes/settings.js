@@ -68,9 +68,10 @@ router.put('/', protect, async (req, res) => {
         data: {
           id: 1,
           ...data
-        },
+        }
       });
     }
+    req.app.get('io')?.emit('website:data-updated', { type: 'settings' });
     res.json(settings);
   } catch (error) {
     console.error(error);

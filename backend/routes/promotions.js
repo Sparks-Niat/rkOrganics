@@ -42,6 +42,7 @@ router.post('/', protect, async (req, res) => {
         isActive: isActive !== undefined ? !!isActive : true,
       },
     });
+    req.app.get('io')?.emit('website:data-updated', { type: 'promotions' });
     res.status(201).json(promotion);
   } catch (error) {
     console.error(error);
@@ -85,6 +86,7 @@ router.put('/:id', protect, async (req, res) => {
       data,
     });
 
+    req.app.get('io')?.emit('website:data-updated', { type: 'promotions' });
     res.json(updated);
   } catch (error) {
     console.error(error);
@@ -108,6 +110,7 @@ router.delete('/:id', protect, async (req, res) => {
       where: { id: promotionId },
     });
 
+    req.app.get('io')?.emit('website:data-updated', { type: 'promotions' });
     res.json({ message: 'Promotion deleted successfully' });
   } catch (error) {
     console.error(error);

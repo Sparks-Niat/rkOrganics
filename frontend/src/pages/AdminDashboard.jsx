@@ -6,6 +6,7 @@ import {
   Menu, X, Star, Link2, Sparkles, HelpCircle, Heart, User, Award
 } from 'lucide-react';
 import { api } from '../utils/api';
+import { useSocket } from '../context/SocketContext';
 
 export default function AdminDashboard({ onLogout }) {
   // Navigation
@@ -132,6 +133,32 @@ export default function AdminDashboard({ onLogout }) {
   useEffect(() => {
     loadData();
   }, []);
+
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUpdate = (data) => {
+      console.log(`Admin dashboard data updated (${data.type}), refreshing...`);
+      // Re-query all dynamic data so stats count, tables, and settings reflect changes
+      loadData();
+    };
+
+    socket.on('website:data-updated', handleUpdate);
+
+    const handleReconnect = () => {
+      console.log('Socket reconnected, refreshing admin dashboard data...');
+      loadData();
+    };
+
+    window.addEventListener('socket_reconnected', handleReconnect);
+
+    return () => {
+      socket.off('website:data-updated', handleUpdate);
+      window.removeEventListener('socket_reconnected', handleReconnect);
+    };
+  }, [socket]);
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });

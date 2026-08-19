@@ -156,6 +156,7 @@ router.post('/', protect, async (req, res) => {
       },
     });
 
+    req.app.get('io')?.emit('website:data-updated', { type: 'medicines' });
     res.status(201).json(medicine);
   } catch (error) {
     console.error(error);
@@ -257,6 +258,7 @@ router.put('/:id', protect, async (req, res) => {
       },
     });
 
+    req.app.get('io')?.emit('website:data-updated', { type: 'medicines' });
     res.json(medicine);
   } catch (error) {
     console.error(error);
@@ -288,6 +290,7 @@ router.delete('/:id', protect, async (req, res) => {
       where: { id: medId },
     });
 
+    req.app.get('io')?.emit('website:data-updated', { type: 'medicines' });
     res.json({ message: 'Medicine deleted successfully' });
   } catch (error) {
     console.error(error);

@@ -40,6 +40,7 @@ router.post('/', protect, async (req, res) => {
         isActive: isActive !== undefined ? !!isActive : true,
       },
     });
+    req.app.get('io')?.emit('website:data-updated', { type: 'testimonials' });
     res.status(201).json(testimonial);
   } catch (error) {
     console.error(error);
@@ -81,6 +82,7 @@ router.put('/:id', protect, async (req, res) => {
       data,
     });
 
+    req.app.get('io')?.emit('website:data-updated', { type: 'testimonials' });
     res.json(updated);
   } catch (error) {
     console.error(error);
@@ -104,6 +106,7 @@ router.delete('/:id', protect, async (req, res) => {
       where: { id: testimonialId },
     });
 
+    req.app.get('io')?.emit('website:data-updated', { type: 'testimonials' });
     res.json({ message: 'Testimonial deleted successfully' });
   } catch (error) {
     console.error(error);

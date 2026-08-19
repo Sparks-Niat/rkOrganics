@@ -39,6 +39,7 @@ router.post('/', protect, async (req, res) => {
         isActive: isActive !== undefined ? !!isActive : true,
       },
     });
+    req.app.get('io')?.emit('website:data-updated', { type: 'benefits' });
     res.status(201).json(benefit);
   } catch (error) {
     console.error(error);
@@ -79,6 +80,7 @@ router.put('/:id', protect, async (req, res) => {
       data,
     });
 
+    req.app.get('io')?.emit('website:data-updated', { type: 'benefits' });
     res.json(updated);
   } catch (error) {
     console.error(error);
@@ -102,6 +104,7 @@ router.delete('/:id', protect, async (req, res) => {
       where: { id: benefitId },
     });
 
+    req.app.get('io')?.emit('website:data-updated', { type: 'benefits' });
     res.json({ message: 'Benefit deleted successfully' });
   } catch (error) {
     console.error(error);

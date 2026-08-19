@@ -20,3 +20,5 @@ frontend/dist/
 *.log
 .gemini/
 .system_generated/
+.vercel/
+frontend/.vercel/

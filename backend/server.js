@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
 // Import Route Handlers
 import authRoutes from './routes/auth.js';
@@ -71,7 +73,26 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Create HTTP Server & Bind Socket.IO
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+  }
+});
+
+// Configure Socket.IO Server
+io.on('connection', (socket) => {
+  console.log(`Socket client connected: ${socket.id}`);
+  socket.on('disconnect', () => {
+    console.log(`Socket client disconnected: ${socket.id}`);
+  });
+});
+
+app.set('io', io);
+
 // Start Server
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

@@ -49,9 +49,10 @@ router.put('/', protect, async (req, res) => {
           defaultMessage,
           businessName,
           orderMessageFormat,
-        },
+        }
       });
     }
+    req.app.get('io')?.emit('website:data-updated', { type: 'whatsapp' });
     res.json(settings);
   } catch (error) {
     console.error(error);

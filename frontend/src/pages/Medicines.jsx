@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Search, Phone, Eye, Heart, SlidersHorizontal, ShoppingBag, ShieldAlert } from 'lucide-react';
 import { api } from '../utils/api';
+import { useSocket } from '../context/SocketContext';
 
 export default function Medicines() {
   const { categorySlug } = useParams();
@@ -17,7 +18,7 @@ export default function Medicines() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadMedicinesPageData = () => {
     Promise.all([
       api.medicines.getAll(),
       api.categories.getAll(),
@@ -31,7 +32,39 @@ export default function Medicines() {
     })
     .catch(err => console.error('Failed to load medicines page data:', err))
     .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadMedicinesPageData();
   }, []);
+
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUpdate = (data) => {
+      const matchTypes = ['medicines', 'categories', 'whatsapp'];
+      if (matchTypes.includes(data.type)) {
+        console.log(`Medicines page data updated (${data.type}), refreshing...`);
+        loadMedicinesPageData();
+      }
+    };
+
+    socket.on('website:data-updated', handleUpdate);
+
+    const handleReconnect = () => {
+      console.log('Socket reconnected, refreshing medicines list data...');
+      loadMedicinesPageData();
+    };
+
+    window.addEventListener('socket_reconnected', handleReconnect);
+
+    return () => {
+      socket.off('website:data-updated', handleUpdate);
+      window.removeEventListener('socket_reconnected', handleReconnect);
+    };
+  }, [socket]);
 
   const getCategorySlug = (category) => {
     const name = category.englishName.toLowerCase();

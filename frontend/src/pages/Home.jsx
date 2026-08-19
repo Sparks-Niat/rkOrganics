@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, ArrowRight, CheckCircle2, ShieldCheck, Heart, MapPin, Star, Sparkles } from 'lucide-react';
 import { api } from '../utils/api';
+import { useSocket } from '../context/SocketContext';
 
 export default function Home() {
   const [settings, setSettings] = useState({
@@ -35,8 +36,7 @@ export default function Home() {
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Load all data dynamically from the database
+  const loadHomeData = () => {
     Promise.all([
       api.settings.get(),
       api.contact.get(),
@@ -98,7 +98,39 @@ export default function Home() {
     })
     .catch(err => console.error('Error loading home page data:', err))
     .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadHomeData();
   }, []);
+
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUpdate = (data) => {
+      const homeTypes = ['settings', 'contact', 'whatsapp', 'medicines', 'benefits', 'testimonials', 'promotions'];
+      if (homeTypes.includes(data.type)) {
+        console.log(`Home page data updated (${data.type}), refreshing...`);
+        loadHomeData();
+      }
+    };
+
+    socket.on('website:data-updated', handleUpdate);
+
+    const handleReconnect = () => {
+      console.log('Socket reconnected, refreshing home page data...');
+      loadHomeData();
+    };
+
+    window.addEventListener('socket_reconnected', handleReconnect);
+
+    return () => {
+      socket.off('website:data-updated', handleUpdate);
+      window.removeEventListener('socket_reconnected', handleReconnect);
+    };
+  }, [socket]);
 
   const handleWhatsAppOrder = (e, medicine) => {
     e.stopPropagation(); // Stop navigation to detail page

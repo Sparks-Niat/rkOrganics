@@ -80,9 +80,10 @@ router.put('/', protect, async (req, res) => {
           instagramUrl,
           facebookUrl,
           twitterUrl,
-        },
+        }
       });
     }
+    req.app.get('io')?.emit('website:data-updated', { type: 'contact' });
     res.json(contact);
   } catch (error) {
     console.error(error);
