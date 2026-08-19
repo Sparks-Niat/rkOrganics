@@ -4,6 +4,38 @@ import { Phone, ArrowLeft, Heart, CheckCircle, ShieldCheck, HelpCircle, ShieldAl
 import { api } from '../utils/api';
 import { useSocket } from '../context/SocketContext';
 
+const ProductSkeleton = () => (
+  <div className="min-h-screen bg-sand-50/30 pb-16 animate-pulse">
+    <div className="bg-white border-b border-primary-100 py-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="h-5 bg-sand-200 rounded-md w-24"></div>
+      </div>
+    </div>
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 bg-white p-6 sm:p-10 rounded-3xl border border-primary-100 shadow-sm">
+        <div className="lg:col-span-5 flex flex-col space-y-4">
+          <div className="aspect-square rounded-2xl bg-sand-200"></div>
+        </div>
+        <div className="lg:col-span-7 flex flex-col space-y-6">
+          <div className="space-y-3">
+            <div className="h-4 bg-sand-200 rounded-md w-1/4"></div>
+            <div className="h-8 bg-sand-200 rounded-md w-3/4"></div>
+            <div className="h-6 bg-sand-150 rounded-md w-1/2"></div>
+          </div>
+          <div className="space-y-4 pt-6 border-t border-primary-50">
+            <div className="h-4 bg-sand-200 rounded-md w-full"></div>
+            <div className="h-4 bg-sand-200 rounded-md w-5/6"></div>
+          </div>
+          <div className="space-y-4 pt-6 border-t border-primary-50">
+            <div className="h-10 bg-sand-200 rounded-md w-1/3"></div>
+            <div className="h-12 bg-sand-200 rounded-xl w-full"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 export default function ProductDetails() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -83,11 +115,7 @@ export default function ProductDetails() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
-      </div>
-    );
+    return <ProductSkeleton />;
   }
 
   if (error || !medicine || !medicine.isActive || medicine.availability === 'HIDDEN') {

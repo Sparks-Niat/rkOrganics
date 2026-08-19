@@ -122,13 +122,16 @@ const DEFAULT_FALLBACK_DATA = {
 
 export default function About() {
   const [data, setData] = useState(DEFAULT_FALLBACK_DATA);
-  const [contact, setContact] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [contact, setContact] = useState({
+    businessName: 'R.K. Ayurveda',
+    phone: '+91 6305029231',
+    whatsapp: '6305029231'
+  });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { socket } = useSocket();
 
   const loadData = () => {
-    setLoading(true);
     Promise.all([
       api.about.get(),
       api.contact.get()
@@ -146,8 +149,7 @@ export default function About() {
       console.error('Failed to load about data, using default static fallback content:', err);
       setData(DEFAULT_FALLBACK_DATA);
       setError(null); // Clear error to render fallback data instead
-    })
-    .finally(() => setLoading(false));
+    });
   };
 
   useEffect(() => {
@@ -191,14 +193,6 @@ export default function About() {
       window.removeEventListener('socket_reconnected', handleReconnect);
     };
   }, [socket]);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[60vh] bg-sand-50">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
 
   // Filter sections that are enabled
   const activeSections = (data.sections || [])

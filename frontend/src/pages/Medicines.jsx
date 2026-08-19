@@ -4,6 +4,23 @@ import { Search, Phone, Eye, Heart, SlidersHorizontal, ShoppingBag, ShieldAlert 
 import { api } from '../utils/api';
 import { useSocket } from '../context/SocketContext';
 
+const SkeletonCard = () => (
+  <div className="bg-white rounded-2xl overflow-hidden border border-primary-100/50 shadow-xs flex flex-col h-full animate-pulse">
+    <div className="h-56 bg-sand-200"></div>
+    <div className="p-6 flex flex-col flex-grow space-y-4 justify-between">
+      <div className="space-y-3">
+        <div className="h-6 bg-sand-200 rounded-md w-3/4"></div>
+        <div className="h-4 bg-sand-100 rounded-md w-1/2"></div>
+        <div className="h-4 bg-sand-100 rounded-md w-full"></div>
+      </div>
+      <div className="space-y-3 pt-4 border-t border-primary-50">
+        <div className="h-8 bg-sand-200 rounded-md w-1/3"></div>
+        <div className="h-10 bg-sand-200 rounded-xl w-full"></div>
+      </div>
+    </div>
+  </div>
+);
+
 export default function Medicines() {
   const { categorySlug } = useParams();
   const navigate = useNavigate();
@@ -227,8 +244,10 @@ export default function Medicines() {
 
         {/* Medicines Grid */}
         {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
           </div>
         ) : filteredMedicines.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-3xl border border-primary-100/50 shadow-xs flex flex-col items-center justify-center p-8">
