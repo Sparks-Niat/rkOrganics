@@ -18,7 +18,7 @@ export async function request(url, options = {}) {
   };
 
   try {
-    const response = await fetch(url, config);
+    const response = await fetch(BASE_URL + url, config);
     
     // Check if unauthorized, logout if so
     if (response.status === 401 && !url.includes('/api/auth/login')) {
@@ -53,6 +53,36 @@ export const api = {
   about: {
     get: () => request('/api/about'),
     update: (data) => request('/api/about', { method: 'PUT', body: JSON.stringify(data) }),
+    philosophy: {
+      create: (data) => request('/api/about/philosophy', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id, data) => request(`/api/about/philosophy/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+      delete: (id) => request(`/api/about/philosophy/${id}`, { method: 'DELETE' }),
+    },
+    quality: {
+      create: (data) => request('/api/about/quality', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id, data) => request(`/api/about/quality/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+      delete: (id) => request(`/api/about/quality/${id}`, { method: 'DELETE' }),
+    },
+    whyChooseUs: {
+      create: (data) => request('/api/about/why-choose-us', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id, data) => request(`/api/about/why-choose-us/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+      delete: (id) => request(`/api/about/why-choose-us/${id}`, { method: 'DELETE' }),
+    },
+    values: {
+      create: (data) => request('/api/about/values', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id, data) => request(`/api/about/values/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+      delete: (id) => request(`/api/about/values/${id}`, { method: 'DELETE' }),
+    },
+    gallery: {
+      create: (data) => request('/api/about/gallery', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id, data) => request(`/api/about/gallery/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+      delete: (id) => request(`/api/about/gallery/${id}`, { method: 'DELETE' }),
+    },
+    certifications: {
+      create: (data) => request('/api/about/certifications', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id, data) => request(`/api/about/certifications/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+      delete: (id) => request(`/api/about/certifications/${id}`, { method: 'DELETE' }),
+    },
   },
   contact: {
     get: () => request('/api/contact'),
@@ -111,7 +141,7 @@ export const api = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch('/api/upload', {
+    const response = await fetch(BASE_URL + '/api/upload', {
       method: 'POST',
       headers,
       body: formData,

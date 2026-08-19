@@ -47,18 +47,97 @@ model ContactDetails {
 }
 
 model AboutContent {
-  id                Int      @id @default(1)
-  heading           String   @default("About Our Organisation")
-  ourStory          String
-  mission           String
-  vision            String
-  philosophy        String
-  qualityInfo       String
-  whyChooseUs       String
-  additionalContent String?
-  imageUrl          String?
-  isEnabled         Boolean  @default(true)
-  updatedAt         DateTime @updatedAt
+  id                    Int      @id @default(1)
+  heading               String   @default("About Our Organisation")
+  aboutIntro            String   @default("Dedicated to bringing authentic Ayurvedic health and wellness to your home.") @db.Text
+  ourStory              String   @db.Text
+  storyImageUrl         String?
+  mission               String   @db.Text
+  vision                String   @db.Text
+  philosophyIntro       String   @default("Our approach is guided by timeless natural wisdom.") @db.Text
+  qualityIntro          String   @default("We ensure transparency and care in every product.") @db.Text
+  whyChooseUsIntro      String   @default("Why customers trust R.K. Ayurveda.") @db.Text
+  valuesIntro           String   @default("The core principles that guide us.") @db.Text
+  galleryTitle          String   @default("Inside R.K. Ayurveda")
+  galleryIntro          String   @default("Take a look at our daily operations and products.") @db.Text
+  certificationsTitle   String   @default("Our Certifications & Trust Standards")
+  certificationsIntro   String   @default("Genuine business standards and registrations.") @db.Text
+  certificationsEnabled Boolean  @default(false)
+  ctaTitle              String   @default("Explore Our Ayurvedic Products")
+  ctaButtonText         String   @default("View Medicines")
+  ctaButtonLink         String   @default("/medicines")
+  ctaWhatsAppText       String   @default("Order on WhatsApp")
+  isEnabled             Boolean  @default(true)
+  updatedAt             DateTime @updatedAt
+
+  // Retain original fields to prevent breaking any queries
+  philosophy            String   @default("Ayurveda is the science of life.")
+  qualityInfo           String   @default("Every batch is prepared with strict adherence to traditional methods.")
+  whyChooseUs           String   @default("100% natural formula, chemical-free processing, heritage-based recipes.")
+  additionalContent     String?  @default("")
+  imageUrl              String?
+}
+
+model AboutSection {
+  id           String   @id // e.g. "hero", "story", "mission_vision", "philosophy", "quality", "why_choose_us", "values", "gallery", "certifications", "cta"
+  title        String
+  isEnabled    Boolean  @default(true)
+  displayOrder Int      @default(0)
+}
+
+model AboutPhilosophyItem {
+  id           Int      @id @default(autoincrement())
+  icon         String
+  title        String
+  description  String   @db.Text
+  displayOrder Int      @default(0)
+  isEnabled    Boolean  @default(true)
+}
+
+model AboutQualityItem {
+  id           Int      @id @default(autoincrement())
+  icon         String
+  title        String
+  description  String   @db.Text
+  displayOrder Int      @default(0)
+  isEnabled    Boolean  @default(true)
+}
+
+model AboutWhyChooseUsItem {
+  id           Int      @id @default(autoincrement())
+  icon         String?
+  title        String
+  description  String   @db.Text
+  displayOrder Int      @default(0)
+  isEnabled    Boolean  @default(true)
+}
+
+model AboutValueItem {
+  id           Int      @id @default(autoincrement())
+  icon         String
+  title        String
+  description  String   @db.Text
+  displayOrder Int      @default(0)
+  isEnabled    Boolean  @default(true)
+}
+
+model AboutGalleryImage {
+  id           Int      @id @default(autoincrement())
+  imageUrl     String
+  title        String?
+  description  String?  @db.Text
+  displayOrder Int      @default(0)
+  isEnabled    Boolean  @default(true)
+}
+
+model AboutCertification {
+  id           Int      @id @default(autoincrement())
+  imageUrl     String?
+  title        String
+  description  String?  @db.Text
+  issuer       String?
+  displayOrder Int      @default(0)
+  isEnabled    Boolean  @default(true)
 }
 
 model Category {

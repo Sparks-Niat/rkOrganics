@@ -3,7 +3,8 @@ import {
   LayoutDashboard, Home as HomeIcon, FileText, Package, List, Phone, 
   MapPin, Settings as SettingsIcon, LogOut, Plus, Edit, Trash2, CheckCircle2, 
   AlertCircle, Upload, Eye, EyeOff, Save, Trash, Image as ImageIcon, ShieldAlert,
-  Menu, X, Star, Link2, Sparkles, HelpCircle, Heart, User, Award
+  Menu, X, Star, Link2, Sparkles, HelpCircle, Heart, User, Award,
+  ArrowUp, ArrowDown, Compass, BookOpen, Briefcase, ShieldCheck
 } from 'lucide-react';
 import { api } from '../utils/api';
 import { useSocket } from '../context/SocketContext';
@@ -47,6 +48,8 @@ export default function AdminDashboard({ onLogout }) {
 
   // Form Modals / Edit states
   const [medicineModal, setMedicineModal] = useState({ open: false, mode: 'add', data: null });
+  const [aboutSubTab, setAboutSubTab] = useState('general');
+  const [editItem, setEditItem] = useState({ type: null, id: null, form: {} });
   const [categoryModal, setCategoryModal] = useState({ open: false, mode: 'add', data: null });
   const [benefitModal, setBenefitModal] = useState({ open: false, mode: 'add', data: null });
   const [testimonialModal, setTestimonialModal] = useState({ open: false, mode: 'add', data: null });
@@ -233,6 +236,93 @@ export default function AdminDashboard({ onLogout }) {
       showToast(err.message || 'Error updating about content', 'error');
     } finally {
       setSaving(false);
+    }
+  };
+  
+  const handleSaveSubItem = async (e) => {
+    e.preventDefault();
+    const { type, id, form } = editItem;
+    setSaving(true);
+    try {
+      if (id) {
+        await api.about[type].update(id, form);
+        showToast('Item updated successfully', 'success');
+      } else {
+        await api.about[type].create(form);
+        showToast('Item created successfully', 'success');
+      }
+      setEditItem({ type: null, id: null, form: {} });
+      const updatedAbout = await api.about.get();
+      setAboutContent(updatedAbout);
+    } catch (err) {
+      showToast(err.message || 'Error saving item', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteSubItem = async (type, id) => {
+    if (!window.confirm('Are you sure you want to delete this item?')) return;
+    setSaving(true);
+    try {
+      await api.about[type].delete(id);
+      showToast('Item deleted successfully', 'success');
+      const updatedAbout = await api.about.get();
+      setAboutContent(updatedAbout);
+    } catch (err) {
+      showToast(err.message || 'Error deleting item', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleMoveSubItem = async (type, index, direction, items) => {
+    const newItems = [...items];
+    if (direction === 'up' && index > 0) {
+      const temp = newItems[index].displayOrder;
+      newItems[index].displayOrder = newItems[index - 1].displayOrder;
+      newItems[index - 1].displayOrder = temp;
+    } else if (direction === 'down' && index < newItems.length - 1) {
+      const temp = newItems[index].displayOrder;
+      newItems[index].displayOrder = newItems[index + 1].displayOrder;
+      newItems[index + 1].displayOrder = temp;
+    }
+    newItems.sort((a, b) => a.displayOrder - b.displayOrder);
+    newItems.forEach((s, idx) => { s.displayOrder = idx; });
+
+    try {
+      await Promise.all(
+        newItems.map(item => api.about[type].update(item.id, { displayOrder: item.displayOrder }))
+      );
+      showToast('Order updated successfully', 'success');
+      const updatedAbout = await api.about.get();
+      setAboutContent(updatedAbout);
+    } catch (err) {
+      showToast(err.message || 'Error updating order', 'error');
+    }
+  };
+
+  const moveSection = async (index, direction) => {
+    const newSections = [...(aboutContent.sections || [])];
+    if (direction === 'up' && index > 0) {
+      const temp = newSections[index].displayOrder;
+      newSections[index].displayOrder = newSections[index - 1].displayOrder;
+      newSections[index - 1].displayOrder = temp;
+    } else if (direction === 'down' && index < newSections.length - 1) {
+      const temp = newSections[index].displayOrder;
+      newSections[index].displayOrder = newSections[index + 1].displayOrder;
+      newSections[index + 1].displayOrder = temp;
+    }
+    newSections.sort((a, b) => a.displayOrder - b.displayOrder);
+    newSections.forEach((s, idx) => { s.displayOrder = idx; });
+
+    setAboutContent(prev => ({ ...prev, sections: newSections }));
+
+    try {
+      await api.about.update({ ...aboutContent, sections: newSections });
+      showToast('Section order updated successfully', 'success');
+    } catch (err) {
+      showToast(err.message || 'Error reordering sections', 'error');
     }
   };
 
@@ -1052,149 +1142,606 @@ export default function AdminDashboard({ onLogout }) {
 
             {/* About Us Management Tab */}
             {activeTab === 'aboutus' && (
-              <form onSubmit={handleSaveAbout} className="space-y-6 bg-white p-6 sm:p-10 rounded-3xl border border-primary-100 shadow-xs">
-                <div>
-                  <h1 className="font-display font-bold text-2xl text-primary-950">About Us Page Content</h1>
-                  <p className="text-sand-500 text-sm">Update the paragraphs displayed on the About Us page</p>
-                </div>
-
-                {/* About Page Enabled */}
-                <div className="flex items-center gap-3 bg-sand-50 p-4 rounded-xl border border-primary-100">
-                  <input
-                    type="checkbox"
-                    id="about-enabled"
-                    checked={!!aboutContent.isEnabled}
-                    onChange={(e) => setAboutContent({ ...aboutContent, isEnabled: e.target.checked })}
-                    className="h-4.5 w-4.5 text-primary-600 focus:ring-primary-500 rounded border-primary-300"
-                  />
-                  <label htmlFor="about-enabled" className="text-sm font-semibold text-primary-955 select-none">
-                    Enable About Us Page on customer website
-                  </label>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">About Heading</label>
-                      <input
-                        type="text"
-                        value={aboutContent.heading || ''}
-                        onChange={(e) => setAboutContent({ ...aboutContent, heading: e.target.value })}
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Our Story Paragraph</label>
-                      <textarea
-                        value={aboutContent.ourStory || ''}
-                        onChange={(e) => setAboutContent({ ...aboutContent, ourStory: e.target.value })}
-                        rows="5"
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      ></textarea>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Our Mission</label>
-                      <textarea
-                        value={aboutContent.mission || ''}
-                        onChange={(e) => setAboutContent({ ...aboutContent, mission: e.target.value })}
-                        rows="3"
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      ></textarea>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Our Vision</label>
-                      <textarea
-                        value={aboutContent.vision || ''}
-                        onChange={(e) => setAboutContent({ ...aboutContent, vision: e.target.value })}
-                        rows="3"
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      ></textarea>
-                    </div>
+              <div className="space-y-6">
+                <div className="bg-white p-6 sm:p-10 rounded-3xl border border-primary-100 shadow-xs">
+                  <div>
+                    <h1 className="font-display font-bold text-2xl text-primary-950">About Us Page CMS</h1>
+                    <p className="text-sand-500 text-sm">Control exactly what, how, and in which order sections appear on the About Us page.</p>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Ayurvedic Philosophy</label>
-                      <textarea
-                        value={aboutContent.philosophy || ''}
-                        onChange={(e) => setAboutContent({ ...aboutContent, philosophy: e.target.value })}
-                        rows="3"
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      ></textarea>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Quality Information Details</label>
-                      <textarea
-                        value={aboutContent.qualityInfo || ''}
-                        onChange={(e) => setAboutContent({ ...aboutContent, qualityInfo: e.target.value })}
-                        rows="3"
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      ></textarea>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Why Choose Us (Bullet points split by new lines)</label>
-                      <textarea
-                        value={aboutContent.whyChooseUs || ''}
-                        onChange={(e) => setAboutContent({ ...aboutContent, whyChooseUs: e.target.value })}
-                        rows="3"
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      ></textarea>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Additional Content block</label>
-                      <textarea
-                        value={aboutContent.additionalContent || ''}
-                        onChange={(e) => setAboutContent({ ...aboutContent, additionalContent: e.target.value })}
-                        rows="3"
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                      ></textarea>
-                    </div>
+                  {/* Sub Tab Switcher */}
+                  <div className="flex flex-wrap gap-2 mt-6 border-b border-primary-50 pb-4">
+                    {[
+                      { id: 'general', label: 'General & Order' },
+                      { id: 'story', label: 'Hero & Our Story' },
+                      { id: 'mission_vision', label: 'Mission & Vision' },
+                      { id: 'philosophy', label: 'Philosophy' },
+                      { id: 'quality', label: 'Quality Assurance' },
+                      { id: 'why_choose_us', label: 'Why Choose Us' },
+                      { id: 'values', label: 'Our Values' },
+                      { id: 'gallery', label: 'Gallery' },
+                      { id: 'certifications', label: 'Certifications' },
+                      { id: 'cta', label: 'Bottom CTA' }
+                    ].map(tab => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => {
+                          setAboutSubTab(tab.id);
+                          setEditItem({ type: null, id: null, form: {} });
+                        }}
+                        className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full transition-all cursor-pointer ${
+                          aboutSubTab === tab.id
+                            ? 'bg-primary-900 text-white shadow-sm'
+                            : 'bg-primary-50 hover:bg-primary-100 text-primary-900'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Section Image</label>
-                      <div className="flex items-center gap-4">
-                        <div className="h-16 w-16 rounded-2xl bg-sand-100 border border-primary-200 flex items-center justify-center overflow-hidden shrink-0">
-                          {aboutContent.imageUrl ? (
-                            <img src={aboutContent.imageUrl} alt="About Us" className="h-full w-full object-cover" />
+                  <form onSubmit={handleSaveAbout} className="space-y-6 mt-6">
+                    {/* SUB-TAB: GENERAL */}
+                    {aboutSubTab === 'general' && (
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-3 bg-sand-50 p-4 rounded-xl border border-primary-100">
+                          <input
+                            type="checkbox"
+                            id="about-enabled"
+                            checked={!!aboutContent.isEnabled}
+                            onChange={(e) => setAboutContent({ ...aboutContent, isEnabled: e.target.checked })}
+                            className="h-4.5 w-4.5 text-primary-600 focus:ring-primary-500 rounded border-primary-300"
+                          />
+                          <label htmlFor="about-enabled" className="text-sm font-semibold text-primary-955 select-none">
+                            Enable About Us Page on customer website
+                          </label>
+                        </div>
+
+                        <div className="space-y-4">
+                          <h3 className="text-base font-bold text-primary-950">Manage Section Display Order & Visibility</h3>
+                          <p className="text-xs text-sand-500">Toggle enabled states and use the Up/Down buttons to reorder layout parts on the live page.</p>
+                          <div className="space-y-2">
+                            {(aboutContent.sections || []).map((sec, idx) => (
+                              <div key={sec.id} className="flex items-center justify-between p-4 bg-sand-50/50 rounded-2xl border border-sand-200/50">
+                                <div className="flex items-center gap-4">
+                                  <input
+                                    type="checkbox"
+                                    checked={!!sec.isEnabled}
+                                    onChange={(e) => {
+                                      const updatedSecs = (aboutContent.sections || []).map(s => s.id === sec.id ? { ...s, isEnabled: e.target.checked } : s);
+                                      setAboutContent({ ...aboutContent, sections: updatedSecs });
+                                    }}
+                                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 rounded border-primary-300"
+                                  />
+                                  <span className="font-semibold text-sm text-primary-900">{sec.title}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => moveSection(idx, 'up')}
+                                    disabled={idx === 0}
+                                    className="p-1.5 hover:bg-primary-50 disabled:opacity-30 rounded-lg text-primary-800"
+                                  >
+                                    <ArrowUp size={16} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => moveSection(idx, 'down')}
+                                    disabled={idx === (aboutContent.sections || []).length - 1}
+                                    className="p-1.5 hover:bg-primary-50 disabled:opacity-30 rounded-lg text-primary-800"
+                                  >
+                                    <ArrowDown size={16} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SUB-TAB: HERO & STORY */}
+                    {aboutSubTab === 'story' && (
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label className="text-sm font-bold text-primary-900 block">About Heading / Hero Title</label>
+                            <input
+                              type="text"
+                              value={aboutContent.heading || ''}
+                              onChange={(e) => setAboutContent({ ...aboutContent, heading: e.target.value })}
+                              className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-bold text-primary-900 block">About Hero Subtitle / Intro</label>
+                            <textarea
+                              value={aboutContent.aboutIntro || ''}
+                              onChange={(e) => setAboutContent({ ...aboutContent, aboutIntro: e.target.value })}
+                              rows="2"
+                              className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                              required
+                            ></textarea>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-primary-50">
+                          <div className="space-y-2">
+                            <label className="text-sm font-bold text-primary-900 block">Our Story Narrative</label>
+                            <textarea
+                              value={aboutContent.ourStory || ''}
+                              onChange={(e) => setAboutContent({ ...aboutContent, ourStory: e.target.value })}
+                              rows="6"
+                              className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                              placeholder="Describe your heritage, start date, and background..."
+                              required
+                            ></textarea>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-bold text-primary-900 block">Our Story Image</label>
+                            <div className="flex items-center gap-4 pt-2">
+                              <div className="h-24 w-24 rounded-2xl bg-sand-100 border border-primary-200 flex items-center justify-center overflow-hidden shrink-0">
+                                {aboutContent.storyImageUrl ? (
+                                  <img src={aboutContent.storyImageUrl} alt="Story visual" className="h-full w-full object-cover" />
+                                ) : (
+                                  <ImageIcon className="text-sand-400" size={28} />
+                                )}
+                              </div>
+                              <div className="space-y-2">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handleImageUpload(e.target.files[0], 'about')}
+                                  className="hidden"
+                                  id="story-image-upload"
+                                />
+                                <label htmlFor="story-image-upload" className="inline-flex items-center gap-2 bg-primary-50 border border-primary-200 hover:bg-primary-100 text-primary-800 text-xs font-semibold px-4 py-2.5 rounded-xl cursor-pointer">
+                                  <Upload size={14} />
+                                  <span>Upload Story Image</span>
+                                </label>
+                                {aboutContent.storyImageUrl && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setAboutContent({ ...aboutContent, storyImageUrl: '' })}
+                                    className="block text-xs font-semibold text-red-600 hover:underline text-left"
+                                  >
+                                    Remove Image
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SUB-TAB: MISSION & VISION */}
+                    {aboutSubTab === 'mission_vision' && (
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-primary-900 block">Our Mission Statement</label>
+                          <textarea
+                            value={aboutContent.mission || ''}
+                            onChange={(e) => setAboutContent({ ...aboutContent, mission: e.target.value })}
+                            rows="4"
+                            className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                            required
+                          ></textarea>
+                        </div>
+                        <div className="space-y-2 pt-4 border-t border-primary-50">
+                          <label className="text-sm font-bold text-primary-900 block">Our Vision Statement</label>
+                          <textarea
+                            value={aboutContent.vision || ''}
+                            onChange={(e) => setAboutContent({ ...aboutContent, vision: e.target.value })}
+                            rows="4"
+                            className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                            required
+                          ></textarea>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SUB-TAB: LISTS (PHILOSOPHY, QUALITY, WHY CHOOSE US, VALUES, GALLERY, CERTIFICATIONS) */}
+                    {['philosophy', 'quality', 'why_choose_us', 'values', 'gallery', 'certifications'].includes(aboutSubTab) && (
+                      <div className="space-y-6">
+                        {/* Subheading Intro editing */}
+                        <div className="space-y-2 p-4 bg-sand-50/50 rounded-2xl border border-sand-150">
+                          <label className="text-sm font-bold text-primary-900 block">
+                            {aboutSubTab === 'philosophy' && 'Philosophy Section Subtitle'}
+                            {aboutSubTab === 'quality' && 'Quality Assurance Section Subtitle'}
+                            {aboutSubTab === 'why_choose_us' && 'Why Choose Us Section Subtitle'}
+                            {aboutSubTab === 'values' && 'Values Section Subtitle'}
+                            {aboutSubTab === 'gallery' && 'Gallery Section Subtitle'}
+                            {aboutSubTab === 'certifications' && 'Certifications Section Subtitle'}
+                          </label>
+                          <textarea
+                            value={
+                              aboutSubTab === 'philosophy' ? (aboutContent.philosophyIntro || '') :
+                              aboutSubTab === 'quality' ? (aboutContent.qualityIntro || '') :
+                              aboutSubTab === 'why_choose_us' ? (aboutContent.whyChooseUsIntro || '') :
+                              aboutSubTab === 'values' ? (aboutContent.valuesIntro || '') :
+                              aboutSubTab === 'gallery' ? (aboutContent.galleryIntro || '') :
+                              (aboutContent.certificationsIntro || '')
+                            }
+                            onChange={(e) => {
+                              const field = 
+                                aboutSubTab === 'philosophy' ? 'philosophyIntro' :
+                                aboutSubTab === 'quality' ? 'qualityIntro' :
+                                aboutSubTab === 'why_choose_us' ? 'whyChooseUsIntro' :
+                                aboutSubTab === 'values' ? 'valuesIntro' :
+                                aboutSubTab === 'gallery' ? 'galleryIntro' :
+                                'certificationsIntro';
+                              setAboutContent({ ...aboutContent, [field]: e.target.value });
+                            }}
+                            rows="2"
+                            className="w-full p-3 bg-white border border-primary-100 rounded-xl text-sm"
+                          ></textarea>
+                        </div>
+
+                        {/* Gallery / Certs Titles */}
+                        {aboutSubTab === 'gallery' && (
+                          <div className="space-y-2">
+                            <label className="text-sm font-bold text-primary-900 block">Gallery Section Title</label>
+                            <input
+                              type="text"
+                              value={aboutContent.galleryTitle || ''}
+                              onChange={(e) => setAboutContent({ ...aboutContent, galleryTitle: e.target.value })}
+                              className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                            />
+                          </div>
+                        )}
+                        {aboutSubTab === 'certifications' && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <label className="text-sm font-bold text-primary-900 block">Certifications Section Title</label>
+                              <input
+                                type="text"
+                                value={aboutContent.certificationsTitle || ''}
+                                onChange={(e) => setAboutContent({ ...aboutContent, certificationsTitle: e.target.value })}
+                                className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                              />
+                            </div>
+                            <div className="flex items-center gap-3 mt-6 bg-sand-50 p-4 rounded-xl border border-primary-100">
+                              <input
+                                type="checkbox"
+                                id="certs-enabled"
+                                checked={!!aboutContent.certificationsEnabled}
+                                onChange={(e) => setAboutContent({ ...aboutContent, certificationsEnabled: e.target.checked })}
+                                className="h-4.5 w-4.5 text-primary-600 focus:ring-primary-500 rounded border-primary-300"
+                              />
+                              <label htmlFor="certs-enabled" className="text-sm font-semibold text-primary-955 select-none">
+                                Enable Certifications Section on site
+                              </label>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* CRUD Form / List Section */}
+                        <div className="border-t border-primary-50 pt-6">
+                          {editItem.type === aboutSubTab ? (
+                            // Add/Edit Sub-item Form
+                            <div className="bg-sand-50/30 p-6 rounded-3xl border border-primary-150 space-y-4">
+                              <h3 className="font-bold text-lg text-primary-950">
+                                {editItem.id ? 'Edit Item' : 'Add New Item'}
+                              </h3>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {aboutSubTab !== 'gallery' && (
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-bold text-primary-900 block">Title</label>
+                                    <input
+                                      type="text"
+                                      value={editItem.form.title || ''}
+                                      onChange={(e) => setEditItem({ ...editItem, form: { ...editItem.form, title: e.target.value } })}
+                                      className="w-full p-3 bg-white border border-primary-100 rounded-xl text-sm"
+                                      required
+                                    />
+                                  </div>
+                                )}
+                                {['philosophy', 'quality', 'why_choose_us', 'values'].includes(aboutSubTab) && (
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-bold text-primary-900 block">Lucide Icon Name</label>
+                                    <select
+                                      value={editItem.form.icon || 'Leaf'}
+                                      onChange={(e) => setEditItem({ ...editItem, form: { ...editItem.form, icon: e.target.value } })}
+                                      className="w-full p-3 bg-white border border-primary-100 rounded-xl text-sm"
+                                    >
+                                      {['Leaf', 'Heart', 'Award', 'Shield', 'Activity', 'CheckCircle', 'Compass', 'BookOpen', 'Sparkles', 'Clock', 'User', 'MessageSquare', 'Briefcase', 'ShieldCheck'].map(ico => (
+                                        <option key={ico} value={ico}>{ico}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                )}
+                                {aboutSubTab === 'certifications' && (
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-bold text-primary-900 block">Issuer</label>
+                                    <input
+                                      type="text"
+                                      value={editItem.form.issuer || ''}
+                                      onChange={(e) => setEditItem({ ...editItem, form: { ...editItem.form, issuer: e.target.value } })}
+                                      className="w-full p-3 bg-white border border-primary-100 rounded-xl text-sm"
+                                      placeholder="e.g. Govt of India, ISO"
+                                    />
+                                  </div>
+                                )}
+                                {['gallery', 'certifications'].includes(aboutSubTab) && (
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-bold text-primary-900 block">Image</label>
+                                    <div className="flex items-center gap-4">
+                                      <div className="h-16 w-16 rounded-xl bg-white border border-primary-200 flex items-center justify-center overflow-hidden shrink-0">
+                                        {editItem.form.imageUrl ? (
+                                          <img src={editItem.form.imageUrl} alt="Sub-item preview" className="h-full w-full object-cover" />
+                                        ) : (
+                                          <ImageIcon className="text-sand-400" size={20} />
+                                        )}
+                                      </div>
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={async (e) => {
+                                          const file = e.target.files[0];
+                                          if (!file) return;
+                                          setSaving(true);
+                                          try {
+                                            const uploadData = await api.upload(file);
+                                            setEditItem(prev => ({
+                                              ...prev,
+                                              form: { ...prev.form, imageUrl: uploadData.imageUrl }
+                                            }));
+                                            showToast('Image uploaded successfully', 'success');
+                                          } catch (err) {
+                                            showToast('Image upload failed', 'error');
+                                          } finally {
+                                            setSaving(false);
+                                          }
+                                        }}
+                                        className="hidden"
+                                        id="subitem-upload"
+                                      />
+                                      <label htmlFor="subitem-upload" className="inline-flex items-center gap-2 bg-white border border-primary-200 hover:bg-primary-50 text-primary-800 text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer">
+                                        <Upload size={14} />
+                                        <span>Upload File</span>
+                                      </label>
+                                    </div>
+                                  </div>
+                                )}
+                                {aboutSubTab === 'gallery' && (
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-bold text-primary-900 block">Caption / Title</label>
+                                    <input
+                                      type="text"
+                                      value={editItem.form.title || ''}
+                                      onChange={(e) => setEditItem({ ...editItem, form: { ...editItem.form, title: e.target.value } })}
+                                      className="w-full p-3 bg-white border border-primary-100 rounded-xl text-sm"
+                                      placeholder="Optional image caption..."
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-sm font-bold text-primary-900 block">Description</label>
+                                <textarea
+                                  value={editItem.form.description || ''}
+                                  onChange={(e) => setEditItem({ ...editItem, form: { ...editItem.form, description: e.target.value } })}
+                                  rows="3"
+                                  className="w-full p-3 bg-white border border-primary-100 rounded-xl text-sm"
+                                  placeholder="Describe this item detail..."
+                                  required={aboutSubTab !== 'gallery' && aboutSubTab !== 'certifications'}
+                                ></textarea>
+                              </div>
+                              <div className="flex justify-end gap-2 pt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setEditItem({ type: null, id: null, form: {} })}
+                                  className="px-5 py-2 border border-sand-300 text-sand-700 font-semibold rounded-xl text-sm hover:bg-sand-50"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleSaveSubItem}
+                                  className="px-5 py-2 bg-primary-900 text-white font-semibold rounded-xl text-sm hover:bg-primary-950"
+                                >
+                                  Save Item
+                                </button>
+                              </div>
+                            </div>
                           ) : (
-                            <ImageIcon className="text-sand-400" size={24} />
+                            // Sub-items List view
+                            <div className="space-y-4">
+                              <div className="flex justify-between items-center">
+                                <h3 className="font-bold text-lg text-primary-950 uppercase tracking-wider">
+                                  {aboutSubTab === 'philosophy' && 'Philosophy Principles'}
+                                  {aboutSubTab === 'quality' && 'Quality Sourcing Items'}
+                                  {aboutSubTab === 'why_choose_us' && 'Why Choose Us Reasons'}
+                                  {aboutSubTab === 'values' && 'Values List'}
+                                  {aboutSubTab === 'gallery' && 'Gallery Images'}
+                                  {aboutSubTab === 'certifications' && 'Certifications List'}
+                                </h3>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditItem({ type: aboutSubTab, id: null, form: { displayOrder: (aboutContent[`${aboutSubTab}Items`] || aboutContent[aboutSubTab] || []).length } })}
+                                  className="inline-flex items-center gap-2 bg-primary-900 hover:bg-primary-950 text-white text-xs font-semibold px-4 py-2.5 rounded-xl cursor-pointer"
+                                >
+                                  <Plus size={14} />
+                                  <span>Add Item</span>
+                                </button>
+                              </div>
+
+                              {/* Items Cards Grid */}
+                              {(() => {
+                                const list = 
+                                  aboutSubTab === 'philosophy' ? aboutContent.philosophyItems :
+                                  aboutSubTab === 'quality' ? aboutContent.qualityItems :
+                                  aboutSubTab === 'why_choose_us' ? aboutContent.whyChooseUsItems :
+                                  aboutSubTab === 'values' ? aboutContent.valueItems :
+                                  aboutSubTab === 'gallery' ? aboutContent.galleryImages :
+                                  aboutContent.certifications;
+
+                                if (!list || list.length === 0) {
+                                  return (
+                                    <div className="text-center p-8 bg-sand-50/50 rounded-2xl border border-dashed border-sand-300">
+                                      <p className="text-sand-500 text-sm">No items configured yet. Click 'Add Item' to create one.</p>
+                                    </div>
+                                  );
+                                }
+
+                                return (
+                                  <div className="grid grid-cols-1 gap-3">
+                                    {list.map((item, idx) => (
+                                      <div key={item.id} className="flex items-center justify-between p-4 bg-sand-50/30 rounded-2xl border border-sand-150 hover:bg-white transition-all duration-300">
+                                        <div className="flex items-center gap-4">
+                                          {/* Icon or Image Preview */}
+                                          {['gallery', 'certifications'].includes(aboutSubTab) ? (
+                                            <div className="h-12 w-12 rounded-lg bg-sand-100 border overflow-hidden shrink-0 flex items-center justify-center">
+                                              {item.imageUrl ? (
+                                                <img src={item.imageUrl} alt="" className="h-full w-full object-cover" />
+                                              ) : (
+                                                <ImageIcon size={20} className="text-sand-400" />
+                                              )}
+                                            </div>
+                                          ) : (
+                                            <div className="h-10 w-10 rounded-xl bg-primary-50 flex items-center justify-center text-primary-700 shrink-0">
+                                              {renderIcon(item.icon, "text-primary-700", 20)}
+                                            </div>
+                                          )}
+                                          <div className="space-y-0.5">
+                                            <h4 className="font-bold text-sm text-primary-950">
+                                              {item.title || item.imageUrl.split('/').pop().slice(0, 15)}
+                                            </h4>
+                                            {item.description && <p className="text-sand-500 text-xs truncate max-w-md">{item.description}</p>}
+                                          </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                          {/* Visibility Toggle */}
+                                          <button
+                                            type="button"
+                                            onClick={async () => {
+                                              try {
+                                                await api.about[aboutSubTab].update(item.id, { isEnabled: !item.isEnabled });
+                                                showToast('Item visibility updated');
+                                                const updated = await api.about.get();
+                                                setAboutContent(updated);
+                                              } catch (err) {
+                                                showToast('Error updating item', 'error');
+                                              }
+                                            }}
+                                            className={`px-2 py-1 text-xs font-semibold rounded ${
+                                              item.isEnabled ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                                            }`}
+                                          >
+                                            {item.isEnabled ? 'Visible' : 'Hidden'}
+                                          </button>
+                                          {/* Move Up/Down */}
+                                          <button
+                                            type="button"
+                                            onClick={() => handleMoveSubItem(aboutSubTab, idx, 'up', list)}
+                                            disabled={idx === 0}
+                                            className="p-1 hover:bg-sand-100 disabled:opacity-30 rounded text-sand-600"
+                                          >
+                                            <ArrowUp size={14} />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleMoveSubItem(aboutSubTab, idx, 'down', list)}
+                                            disabled={idx === list.length - 1}
+                                            className="p-1 hover:bg-sand-100 disabled:opacity-30 rounded text-sand-600"
+                                          >
+                                            <ArrowDown size={14} />
+                                          </button>
+                                          {/* Edit / Delete */}
+                                          <button
+                                            type="button"
+                                            onClick={() => setEditItem({ type: aboutSubTab, id: item.id, form: { ...item } })}
+                                            className="p-1 hover:bg-sand-100 rounded text-blue-600"
+                                          >
+                                            <Edit size={14} />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleDeleteSubItem(aboutSubTab, item.id)}
+                                            className="p-1 hover:bg-sand-100 rounded text-red-600"
+                                          >
+                                            <Trash2 size={14} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              })()}
+                            </div>
                           )}
                         </div>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(e.target.files[0], 'about')}
-                          className="hidden"
-                          id="about-upload"
-                        />
-                        <label htmlFor="about-upload" className="inline-flex items-center gap-2 bg-primary-50 border border-primary-200 hover:bg-primary-100 text-primary-800 text-xs font-semibold px-4 py-2.5 rounded-xl cursor-pointer">
-                          <Upload size={14} />
-                          <span>Upload Image</span>
-                        </label>
                       </div>
-                    </div>
-                  </div>
-                </div>
+                    )}
 
-                <div className="pt-6 border-t border-primary-50 flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-6 py-3 rounded-xl cursor-pointer"
-                  >
-                    <Save size={18} />
-                    <span>Save About Content</span>
-                  </button>
+                    {/* SUB-TAB: BOTTOM CTA */}
+                    {aboutSubTab === 'cta' && (
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-sm font-bold text-primary-900 block">CTA Section Title</label>
+                            <input
+                              type="text"
+                              value={aboutContent.ctaTitle || ''}
+                              onChange={(e) => setAboutContent({ ...aboutContent, ctaTitle: e.target.value })}
+                              className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-bold text-primary-900 block">Primary Action Button Link</label>
+                            <input
+                              type="text"
+                              value={aboutContent.ctaButtonLink || ''}
+                              onChange={(e) => setAboutContent({ ...aboutContent, ctaButtonLink: e.target.value })}
+                              className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-bold text-primary-900 block">Primary Action Button Text</label>
+                            <input
+                              type="text"
+                              value={aboutContent.ctaButtonText || ''}
+                              onChange={(e) => setAboutContent({ ...aboutContent, ctaButtonText: e.target.value })}
+                              className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-bold text-primary-900 block">WhatsApp Action Button Text</label>
+                            <input
+                              type="text"
+                              value={aboutContent.ctaWhatsAppText || ''}
+                              onChange={(e) => setAboutContent({ ...aboutContent, ctaWhatsAppText: e.target.value })}
+                              className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Submit Bar */}
+                    {!editItem.type && (
+                      <div className="pt-6 border-t border-primary-50 flex justify-end">
+                        <button
+                          type="submit"
+                          disabled={saving}
+                          className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-6 py-3 rounded-xl cursor-pointer shadow-xs transition-colors"
+                        >
+                          <Save size={18} />
+                          <span>Save About Content Changes</span>
+                        </button>
+                      </div>
+                    )}
+                  </form>
                 </div>
-              </form>
+              </div>
             )}
 
             {/* Medicine Management Tab */}
