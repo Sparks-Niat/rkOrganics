@@ -219,24 +219,11 @@ export default function Home() {
               <div className="lg:col-span-5 flex justify-center">
                 <div className="relative w-full max-w-md">
                   <div className="absolute inset-0 bg-primary-500 rounded-3xl rotate-3 scale-95 opacity-10"></div>
-                  {settings.heroImageUrl ? (
-                    <img
-                      src={settings.heroImageUrl}
-                      alt="Ayurvedic Banner"
-                      className="relative z-10 w-full h-[320px] sm:h-[400px] object-cover rounded-3xl shadow-xl border-4 border-white"
-                    />
-                  ) : (
-                    <div className="relative z-10 w-full h-[320px] sm:h-[400px] bg-primary-700 rounded-3xl shadow-xl border-4 border-white flex flex-col justify-between p-8 text-white">
-                      <div className="flex justify-between items-start">
-                        <div className="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center font-bold">RK</div>
-                        <span className="bg-accent-500 text-xs px-3 py-1 rounded-full uppercase font-bold tracking-wide">100% Organic</span>
-                      </div>
-                      <div>
-                        <h3 className="font-display font-bold text-3xl mb-2">Heritage Blends</h3>
-                        <p className="text-primary-100 text-sm">Authentic formulation, passed down through generations.</p>
-                      </div>
-                    </div>
-                  )}
+                  <img
+                    src="/hero.png"
+                    alt="Pure Ayurvedic Herbal Ingredients"
+                    className="relative z-10 w-full h-[320px] sm:h-[400px] object-cover rounded-3xl shadow-xl border-4 border-white"
+                  />
                 </div>
               </div>
 
