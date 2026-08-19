@@ -21,6 +21,19 @@ const SkeletonCard = () => (
   </div>
 );
 
+const CategorySkeleton = () => (
+  <div className="bg-white rounded-3xl overflow-hidden border border-primary-100/50 shadow-xs flex flex-col h-full animate-pulse">
+    <div className="h-48 bg-sand-200"></div>
+    <div className="p-6 space-y-3 flex-grow flex flex-col justify-between">
+      <div className="space-y-2">
+        <div className="h-6 bg-sand-200 rounded-md w-3/4"></div>
+        <div className="h-4 bg-sand-150 rounded-md w-1/2"></div>
+      </div>
+      <div className="h-4 bg-sand-100 rounded-md w-1/3"></div>
+    </div>
+  </div>
+);
+
 export default function Medicines() {
   const { categorySlug } = useParams();
   const navigate = useNavigate();
@@ -141,10 +154,10 @@ export default function Medicines() {
     // 4. Search Query matching
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
-      const matchTelugu = medicine.teluguName.toLowerCase().includes(query);
+      const matchTelugu = (medicine.teluguName || '').toLowerCase().includes(query);
       const matchEnglish = medicine.englishName?.toLowerCase().includes(query);
       const matchDesc = medicine.description?.toLowerCase().includes(query);
-      const matchCat = activeCats.some(c => c.englishName.toLowerCase().includes(query));
+      const matchCat = activeCats.some(c => c.englishName?.toLowerCase().includes(query));
       
       return matchTelugu || matchEnglish || matchDesc || matchCat;
     }
