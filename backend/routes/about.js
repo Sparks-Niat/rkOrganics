@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
           heading: 'About R.K. Ayurveda',
           aboutIntro: 'Dedicated to bringing authentic Ayurvedic health and wellness to your home.',
           ourStory: 'Founded with a commitment to pure wellness, R.K. Ayurveda continues the legacy of traditional Ayurvedic healing.',
-          storyImageUrl: '',
+          storyImageUrl: 'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?auto=format&fit=crop&w=800&q=80',
           mission: 'To make pure, authentic, and organic Ayurvedic remedies accessible to everyone.',
           vision: 'To be a globally trusted name in Ayurveda, recognized for our commitment to quality.',
           philosophyIntro: 'Our approach is guided by timeless natural wisdom.',
@@ -50,6 +50,14 @@ router.get('/', async (req, res) => {
           isEnabled: true
         }
       });
+    } else if (!about.storyImageUrl) {
+      // If it exists but has no image, seed it with a default Unsplash Ayurvedic image
+      about = await prisma.aboutContent.update({
+        where: { id: about.id },
+        data: {
+          storyImageUrl: 'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?auto=format&fit=crop&w=800&q=80'
+        }
+      });
     }
 
     // 2. Fetch or initialize sections order
@@ -65,22 +73,75 @@ router.get('/', async (req, res) => {
       });
     }
 
-    // 3. Fetch list items in parallel
-    const [
-      philosophyItems,
-      qualityItems,
-      whyChooseUsItems,
-      valueItems,
-      galleryImages,
-      certifications
-    ] = await Promise.all([
-      prisma.aboutPhilosophyItem.findMany({ orderBy: { displayOrder: 'asc' } }),
-      prisma.aboutQualityItem.findMany({ orderBy: { displayOrder: 'asc' } }),
-      prisma.aboutWhyChooseUsItem.findMany({ orderBy: { displayOrder: 'asc' } }),
-      prisma.aboutValueItem.findMany({ orderBy: { displayOrder: 'asc' } }),
-      prisma.aboutGalleryImage.findMany({ orderBy: { displayOrder: 'asc' } }),
-      prisma.aboutCertification.findMany({ orderBy: { displayOrder: 'asc' } })
-    ]);
+    // 3. Fetch list items
+    let philosophyItems = await prisma.aboutPhilosophyItem.findMany({ orderBy: { displayOrder: 'asc' } });
+    if (philosophyItems.length === 0) {
+      await prisma.aboutPhilosophyItem.createMany({
+        data: [
+          { icon: 'Leaf', title: 'Natural Approach', description: 'We prioritize raw herbs and plants, avoiding chemical extracts or synthetic shortcuts.', displayOrder: 0, isEnabled: true },
+          { icon: 'BookOpen', title: 'Traditional Knowledge', description: 'Each formulation is inspired by classical Ayurvedic texts and ancestral preparations.', displayOrder: 1, isEnabled: true },
+          { icon: 'Award', title: 'Quality Focus', description: 'From selection to bottling, we maintain strict parameters of hygiene and raw quality.', displayOrder: 2, isEnabled: true },
+          { icon: 'ShieldCheck', title: 'Responsible Wellness', description: 'Empowering individuals to take control of their long-term health naturally and safely.', displayOrder: 3, isEnabled: true }
+        ]
+      });
+      philosophyItems = await prisma.aboutPhilosophyItem.findMany({ orderBy: { displayOrder: 'asc' } });
+    }
+
+    let qualityItems = await prisma.aboutQualityItem.findMany({ orderBy: { displayOrder: 'asc' } });
+    if (qualityItems.length === 0) {
+      await prisma.aboutQualityItem.createMany({
+        data: [
+          { icon: 'Leaf', title: 'Carefully Selected Herbs', description: 'We partner with local organic growers to source authentic and mature herbs.', displayOrder: 0, isEnabled: true },
+          { icon: 'Sparkles', title: 'Traditional Preparation', description: 'Prepared according to traditional Ayurvedic guidelines for maximum bio-availability.', displayOrder: 1, isEnabled: true },
+          { icon: 'ShieldCheck', title: 'Pure & Non-Toxic', description: 'Formulated without synthetic chemicals, artificial colors, or heavy metals.', displayOrder: 2, isEnabled: true },
+          { icon: 'Compass', title: 'Direct Sourcing', description: 'We establish clean, traceable sourcing pathways to guarantee absolute transparency.', displayOrder: 3, isEnabled: true }
+        ]
+      });
+      qualityItems = await prisma.aboutQualityItem.findMany({ orderBy: { displayOrder: 'asc' } });
+    }
+
+    let whyChooseUsItems = await prisma.aboutWhyChooseUsItem.findMany({ orderBy: { displayOrder: 'asc' } });
+    if (whyChooseUsItems.length === 0) {
+      await prisma.aboutWhyChooseUsItem.createMany({
+        data: [
+          { icon: 'Heart', title: 'Authentic Formulations', description: 'Recipes formulated by experienced practitioners following time-tested traditions.', displayOrder: 0, isEnabled: true },
+          { icon: 'Sparkles', title: 'Small-Batch Freshness', description: 'We produce in small volumes to deliver active, potent botanical products.', displayOrder: 1, isEnabled: true },
+          { icon: 'Compass', title: 'Traceable Sourcing', description: 'Direct farmer partnerships ensure pure botanical quality and fair trade.', displayOrder: 2, isEnabled: true },
+          { icon: 'User', title: 'Personal Care Focus', description: 'Dedicated support team and custom recommendations for your wellness path.', displayOrder: 3, isEnabled: true },
+          { icon: 'Phone', title: 'Easy WhatsApp Ordering', description: 'Simply click to order and chat with us directly for personalized guidance.', displayOrder: 4, isEnabled: true }
+        ]
+      });
+      whyChooseUsItems = await prisma.aboutWhyChooseUsItem.findMany({ orderBy: { displayOrder: 'asc' } });
+    }
+
+    let valueItems = await prisma.aboutValueItem.findMany({ orderBy: { displayOrder: 'asc' } });
+    if (valueItems.length === 0) {
+      await prisma.aboutValueItem.createMany({
+        data: [
+          { icon: 'Award', title: 'Trust', description: 'We earn and maintain trust through complete transparency in our recipes and sourcing.', displayOrder: 0, isEnabled: true },
+          { icon: 'ShieldCheck', title: 'Quality', description: 'Compromising on herb quality is never an option in our production chain.', displayOrder: 1, isEnabled: true },
+          { icon: 'BookOpen', title: 'Authenticity', description: 'Staying true to authentic Ayurvedic wisdom and traditional prep methods.', displayOrder: 2, isEnabled: true },
+          { icon: 'Leaf', title: 'Natural Living', description: 'Encouraging a harmonious lifestyle in sync with natural seasons and rhythms.', displayOrder: 3, isEnabled: true },
+          { icon: 'Heart', title: 'Customer Care', description: 'Supporting every client\'s health journey with compassion and attention.', displayOrder: 4, isEnabled: true },
+          { icon: 'CheckCircle2', title: 'Integrity', description: 'Ethical trade and honest communications across all our business services.', displayOrder: 5, isEnabled: true }
+        ]
+      });
+      valueItems = await prisma.aboutValueItem.findMany({ orderBy: { displayOrder: 'asc' } });
+    }
+
+    let galleryImages = await prisma.aboutGalleryImage.findMany({ orderBy: { displayOrder: 'asc' } });
+    if (galleryImages.length === 0) {
+      await prisma.aboutGalleryImage.createMany({
+        data: [
+          { imageUrl: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80', title: 'Traditional Wellness Prep', description: 'Authentic herbal oils infusion.', displayOrder: 0, isEnabled: true },
+          { imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80', title: 'Pure Botanical Sourcing', description: 'Sourcing certified organic ingredients.', displayOrder: 1, isEnabled: true },
+          { imageUrl: 'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&w=800&q=80', title: 'Apothecary Storage', description: 'Carefully preserving herb freshness.', displayOrder: 2, isEnabled: true }
+        ]
+      });
+      galleryImages = await prisma.aboutGalleryImage.findMany({ orderBy: { displayOrder: 'asc' } });
+    }
+
+    const certifications = await prisma.aboutCertification.findMany({ orderBy: { displayOrder: 'asc' } });
 
     res.json({
       ...about,
