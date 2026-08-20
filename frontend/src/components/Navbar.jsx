@@ -62,7 +62,7 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-3" aria-label="RK Organics Home">
               <img 
-                src="/logo.jpg" 
+                src={settings.logoUrl || "/logo.jpg"} 
                 alt="RK Organics Logo" 
                 className="h-16 w-16 object-contain rounded-full border border-primary-100/50 shadow-xs"
               />

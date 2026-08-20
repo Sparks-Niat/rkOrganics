@@ -6,9 +6,9 @@ import { api } from '../utils/api';
 export default function Footer() {
   const [contact, setContact] = useState({
     businessName: 'R.K. Organics',
-    address: '123 Ayurvedic Lane, Heritage Town',
-    phone: '+91 6305029231',
-    whatsapp: '6305029231',
+    address: 'Nandigama, Andhra Pradesh, India',
+    phone: '+91 91217 56114',
+    whatsapp: '9121756114',
     email: 'info@rkayurveda.com',
     openingHours: '9:00 AM - 6:00 PM (Mon - Sat)',
     instagramUrl: 'https://instagram.com',
@@ -47,7 +47,7 @@ export default function Footer() {
           <div className="md:col-span-1">
             <div className="flex items-center gap-3 mb-4">
               <img 
-                src="/logo.jpg" 
+                src={settings.logoUrl || "/logo.jpg"} 
                 alt="RK Organics Logo" 
                 className="h-14 w-14 object-contain rounded-full border border-primary-900 shadow-xs bg-white p-0.5"
               />
@@ -91,9 +91,6 @@ export default function Footer() {
               </li>
               <li>
                 <Link to="/medicines" className="text-primary-200 hover:text-accent-400 transition-colors">View Medicines</Link>
-              </li>
-              <li>
-                <Link to="/admin" className="text-primary-200 hover:text-accent-400 transition-colors">Admin Portal</Link>
               </li>
             </ul>
           </div>
@@ -142,6 +139,11 @@ export default function Footer() {
           <p className="mt-2 text-[10px] text-primary-400">
             Disclaimer: These products are traditional Ayurvedic formulations. Please consult a qualified practitioner before starting any regimen.
           </p>
+          <div className="mt-4">
+            <Link to="/admin" className="text-[10px] text-primary-400 hover:text-accent-400 hover:underline transition-colors">
+              Admin Login
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

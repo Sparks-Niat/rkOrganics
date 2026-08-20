@@ -4,7 +4,7 @@ import {
   MapPin, Settings as SettingsIcon, LogOut, Plus, Edit, Trash2, CheckCircle2, 
   AlertCircle, Upload, Eye, EyeOff, Save, Trash, Image as ImageIcon, ShieldAlert,
   Menu, X, Star, Link2, Sparkles, HelpCircle, Heart, User, Award,
-  ArrowUp, ArrowDown, Compass, BookOpen, Briefcase, ShieldCheck
+  ArrowUp, ArrowDown, Compass, BookOpen, Briefcase, ShieldCheck, Search
 } from 'lucide-react';
 import { api } from '../utils/api';
 import { useSocket } from '../context/SocketContext';
@@ -15,6 +15,7 @@ export default function AdminDashboard({ onLogout }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [medSubTab, setMedSubTab] = useState('medicines'); // 'medicines' or 'categories'
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('');
   const [medicineSearchQuery, setMedicineSearchQuery] = useState('');
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
 
@@ -44,6 +45,7 @@ export default function AdminDashboard({ onLogout }) {
 
   // Loading states
   const [loading, setLoading] = useState(true);
+  const [dataError, setDataError] = useState(null);
   const [saving, setSaving] = useState(false);
 
   // Form Modals / Edit states
@@ -86,6 +88,7 @@ export default function AdminDashboard({ onLogout }) {
   // Load dashboard data
   const loadData = async () => {
     setLoading(true);
+    setDataError(null);
     try {
       const [meds, cats, settings, about, contact, wa, benData, testData, promoData, navData] = await Promise.all([
         api.medicines.getAll(),
@@ -127,6 +130,7 @@ export default function AdminDashboard({ onLogout }) {
       });
     } catch (err) {
       console.error(err);
+      setDataError(err.message || 'Error loading dashboard data');
       showToast('Error loading dashboard data', 'error');
     } finally {
       setLoading(false);
@@ -331,6 +335,13 @@ export default function AdminDashboard({ onLogout }) {
     setSaving(true);
     try {
       await api.contact.update(contactDetails);
+      const cleanedWA = (contactDetails.whatsapp || '').replace(/\D/g, '');
+      const updatedWASettings = {
+        ...whatsappSettings,
+        whatsappNumber: cleanedWA || contactDetails.whatsapp
+      };
+      await api.whatsapp.update(updatedWASettings);
+      setWhatsappSettings(updatedWASettings);
       showToast('Contact details updated successfully');
     } catch (err) {
       showToast(err.message || 'Error updating contact details', 'error');
@@ -438,6 +449,13 @@ export default function AdminDashboard({ onLogout }) {
   };
 
   const startDelete = (type, id, name) => {
+    if (type === 'category') {
+      const hasMedicines = medicines.some(m => m.categories?.some(c => c.id === id));
+      if (hasMedicines) {
+        showToast('This category contains medicines. Please move or remove the medicines before deleting the category.', 'error');
+        return;
+      }
+    }
     setDeleteConfirm({ open: true, type, id, name });
   };
 
@@ -735,16 +753,11 @@ export default function AdminDashboard({ onLogout }) {
           <nav className="space-y-1.5 px-3">
             {[
               { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
-              { id: 'homepage', label: 'Home Page settings', icon: HomeIcon },
-              { id: 'aboutus', label: 'About Us settings', icon: FileText },
-              { id: 'medicines', label: 'Medicine Management', icon: Package },
-              { id: 'benefits', label: 'Benefits / Why Choose Us', icon: Award },
-              { id: 'testimonials', label: 'Testimonials CRUD', icon: Star },
-              { id: 'promotions', label: 'Promotional Offers', icon: Sparkles },
-              { id: 'navigation', label: 'Navigation Links', icon: Link2 },
-              { id: 'contact', label: 'Contact Details', icon: MapPin },
-              { id: 'whatsapp', label: 'WhatsApp Config', icon: Phone },
-              { id: 'adminsettings', label: 'Security & Password', icon: SettingsIcon }
+              { id: 'medicines', label: '📦 Medicine Management', icon: Package },
+              { id: 'website_images', label: '🖼 Website Images', icon: ImageIcon },
+              { id: 'homepage', label: '🏠 Home Page', icon: HomeIcon },
+              { id: 'contact', label: '📞 Contact Information', icon: Phone },
+              { id: 'logo', label: '🔰 Logo', icon: Award }
             ].map(tab => {
               const Icon = tab.icon;
               const active = activeTab === tab.id;
@@ -783,45 +796,64 @@ export default function AdminDashboard({ onLogout }) {
 
       {/* Main Panel Content Area */}
       <main className="flex-grow p-4 sm:p-8 md:p-10 overflow-y-auto max-w-7xl">
-        
-        {loading ? (
-          <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-800"></div>
-            <span className="text-sm text-sand-500 font-medium">Fetching details...</span>
+        {dataError && (dataError.toLowerCase().includes('unauthorized') || dataError.toLowerCase().includes('token') || dataError.toLowerCase().includes('login') || dataError.toLowerCase().includes('401') || !localStorage.getItem('admin_token')) ? (
+          <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 bg-white p-8 rounded-3xl border border-rose-100 shadow-xs max-w-md mx-auto text-center mt-12">
+            <ShieldAlert className="text-rose-500 h-16 w-16" />
+            <h2 className="font-display font-bold text-xl text-primary-955">Your session has expired</h2>
+            <p className="text-sand-500 text-sm">Please log in again to manage the medicines store.</p>
+            <button
+              onClick={() => handleLogoutClick()}
+              className="mt-2 inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-6 py-3 rounded-xl cursor-pointer shadow-xs text-sm font-bold transition-all animate-pulse"
+            >
+              <span>Login Again</span>
+            </button>
+          </div>
+        ) : dataError ? (
+          <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 bg-white p-8 rounded-3xl border border-primary-100 shadow-xs max-w-md mx-auto text-center mt-12">
+            <AlertCircle className="text-amber-500 h-16 w-16" />
+            <h2 className="font-display font-bold text-xl text-primary-955">Unable to load data</h2>
+            <p className="text-sand-500 text-sm font-semibold text-rose-600">Error: {dataError}</p>
+            <button
+              onClick={() => loadData()}
+              className="mt-2 inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-6 py-3 rounded-xl cursor-pointer shadow-xs text-sm font-bold transition-all"
+            >
+              <span>Retry Loading</span>
+            </button>
+          </div>
+        ) : loading ? (
+          <div className="space-y-6">
+            <div className="h-10 w-48 bg-sand-200 rounded-lg animate-pulse"></div>
+            <div className="flex flex-wrap gap-4">
+              <div className="h-12 w-full max-w-md bg-sand-200 rounded-xl animate-pulse"></div>
+              <div className="h-12 w-full max-w-xs bg-sand-200 rounded-xl animate-pulse"></div>
+            </div>
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-16 bg-white border border-primary-50 rounded-xl animate-pulse flex items-center justify-between px-6">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 bg-sand-200 rounded-lg animate-pulse"></div>
+                    <div className="space-y-1.5">
+                      <div className="h-3.5 w-32 bg-sand-200 rounded animate-pulse"></div>
+                      <div className="h-3 w-20 bg-sand-200 rounded animate-pulse"></div>
+                    </div>
+                  </div>
+                  <div className="h-3.5 w-16 bg-sand-200 rounded animate-pulse"></div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="space-y-8 animate-in fade-in duration-200">
-            
             {/* Overview / Stats Tab */}
             {activeTab === 'overview' && (
               <div className="space-y-8">
                 <div>
-                  <h1 className="font-display font-bold text-3xl text-primary-950">Dashboard Overview</h1>
+                  <h1 className="font-display font-bold text-3xl text-primary-955">Dashboard Overview</h1>
                   <p className="text-sand-500 text-sm">Key details of your Ayurvedic Medicines store</p>
                 </div>
 
                 {/* Cards grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className="bg-white p-6 rounded-2xl border border-primary-100 shadow-xs flex justify-between items-center">
-                    <div>
-                      <span className="text-xs font-semibold text-sand-500 uppercase tracking-wider text-[10px]">Total Products</span>
-                      <h3 className="font-display font-bold text-3xl text-primary-950 mt-1">{stats.totalMedicines}</h3>
-                    </div>
-                    <div className="h-12 w-12 rounded-xl bg-primary-50 flex items-center justify-center text-primary-700">
-                      <Package size={24} />
-                    </div>
-                  </div>
-
-                  <div className="bg-white p-6 rounded-2xl border border-primary-100 shadow-xs flex justify-between items-center">
-                    <div>
-                      <span className="text-xs font-semibold text-sand-500 uppercase tracking-wider text-[10px]">Active & Available</span>
-                      <h3 className="font-display font-bold text-3xl text-emerald-700 mt-1">{stats.activeMedicines}</h3>
-                    </div>
-                    <div className="h-12 w-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700">
-                      <CheckCircle2 size={24} />
-                    </div>
-                  </div>
-
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                   <div className="bg-white p-6 rounded-2xl border border-primary-100 shadow-xs flex justify-between items-center">
                     <div>
                       <span className="text-xs font-semibold text-sand-500 uppercase tracking-wider text-[10px]">Total Categories</span>
@@ -834,11 +866,24 @@ export default function AdminDashboard({ onLogout }) {
 
                   <div className="bg-white p-6 rounded-2xl border border-primary-100 shadow-xs flex justify-between items-center">
                     <div>
-                      <span className="text-xs font-semibold text-sand-500 uppercase tracking-wider text-[10px]">Testimonials</span>
-                      <h3 className="font-display font-bold text-3xl text-amber-700 mt-1">{stats.totalTestimonials}</h3>
+                      <span className="text-xs font-semibold text-sand-500 uppercase tracking-wider text-[10px]">Total Medicines</span>
+                      <h3 className="font-display font-bold text-3xl text-primary-955 mt-1">{stats.totalMedicines}</h3>
                     </div>
-                    <div className="h-12 w-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-700">
-                      <Star size={24} />
+                    <div className="h-12 w-12 rounded-xl bg-primary-50 flex items-center justify-center text-primary-700">
+                      <Package size={24} />
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-6 rounded-2xl border border-primary-100 shadow-xs flex justify-between items-center">
+                    <div>
+                      <span className="text-xs font-semibold text-sand-500 uppercase tracking-wider text-[10px]">Website Status</span>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="h-3.5 w-3.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span className="font-display font-bold text-xl text-emerald-700">Online</span>
+                      </div>
+                    </div>
+                    <div className="h-12 w-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700">
+                      <CheckCircle2 size={24} />
                     </div>
                   </div>
                 </div>
@@ -848,14 +893,14 @@ export default function AdminDashboard({ onLogout }) {
                   
                   {/* Recent medicines */}
                   <div className="lg:col-span-8 bg-white p-6 sm:p-8 rounded-2xl border border-primary-100 shadow-xs space-y-4">
-                    <h3 className="font-display font-bold text-lg text-primary-950">Recently Added Medicines</h3>
+                    <h3 className="font-display font-bold text-lg text-primary-955">Recently Added Medicines</h3>
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-sm border-collapse">
                         <thead>
                           <tr className="border-b border-primary-100 text-sand-500 font-semibold">
-                            <th className="py-3 px-4">Telugu Name</th>
                             <th className="py-3 px-4">English Name</th>
-                            <th className="py-3 px-4">Category/Categories</th>
+                            <th className="py-3 px-4">Telugu Name</th>
+                            <th className="py-3 px-4">Category</th>
                             <th className="py-3 px-4">Price</th>
                             <th className="py-3 px-4">Status</th>
                           </tr>
@@ -863,20 +908,20 @@ export default function AdminDashboard({ onLogout }) {
                         <tbody>
                           {medicines.slice(0, 5).map((med) => (
                             <tr key={med.id} className="border-b border-primary-50 hover:bg-sand-50/50">
-                              <td className="py-3.5 px-4 font-semibold text-primary-950">{med.teluguName}</td>
-                              <td className="py-3.5 px-4 text-sand-600 font-medium">{med.englishName || '-'}</td>
+                              <td className="py-3.5 px-4 font-semibold text-primary-955">{med.englishName || '-'}</td>
+                              <td className="py-3.5 px-4 text-sand-600 font-medium">{med.teluguName}</td>
                               <td className="py-3.5 px-4 text-sand-600 text-xs">
                                 {med.categories?.map(c => c.englishName).join(', ') || '-'}
                               </td>
                               <td className="py-3.5 px-4 font-medium text-primary-800">
-                                {med.discountPrice ? `₹${med.discountPrice}` : `₹${med.price}`}
+                                {med.price && med.price > 0 ? `₹${med.price}` : 'Price not available'}
                               </td>
                               <td className="py-3.5 px-4">
                                 <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
                                   med.availability === 'AVAILABLE' ? 'bg-emerald-50 text-emerald-700' :
-                                  med.availability === 'OUT_OF_STOCK' ? 'bg-rose-50 text-rose-700' : 'bg-sand-150 text-sand-600'
+                                  'bg-rose-50 text-rose-700'
                                 }`}>
-                                  {med.availability.replace('_', ' ')}
+                                  {med.availability === 'AVAILABLE' ? 'Available' : 'Out of Stock'}
                                 </span>
                               </td>
                             </tr>
@@ -893,28 +938,21 @@ export default function AdminDashboard({ onLogout }) {
 
                   {/* Quick actions box */}
                   <div className="lg:col-span-4 bg-white p-6 sm:p-8 rounded-2xl border border-primary-100 shadow-xs space-y-6">
-                    <h3 className="font-display font-bold text-lg text-primary-950">Quick Actions</h3>
+                    <h3 className="font-display font-bold text-lg text-primary-955">Quick Actions</h3>
                     
                     <div className="grid grid-cols-1 gap-3">
+                      <button 
+                        onClick={() => openCategoryModal('add')}
+                        className="w-full flex items-center justify-between p-3.5 bg-sand-50 hover:bg-primary-50 rounded-xl border border-primary-100 hover:border-primary-200 text-left text-sm font-medium text-primary-955 transition-all cursor-pointer"
+                      >
+                        <span>Create New Category</span>
+                        <Plus size={16} className="text-primary-600" />
+                      </button>
                       <button 
                         onClick={() => openMedicineModal('add')}
                         className="w-full flex items-center justify-between p-3.5 bg-sand-50 hover:bg-primary-50 rounded-xl border border-primary-100 hover:border-primary-200 text-left text-sm font-medium text-primary-955 transition-all cursor-pointer"
                       >
                         <span>Add New Medicine</span>
-                        <Plus size={16} className="text-primary-600" />
-                      </button>
-                      <button 
-                        onClick={() => openCategoryModal('add')}
-                        className="w-full flex items-center justify-between p-3.5 bg-sand-50 hover:bg-primary-50 rounded-xl border border-primary-100 hover:border-primary-200 text-left text-sm font-medium text-primary-955 transition-all cursor-pointer"
-                      >
-                        <span>Create Product Category</span>
-                        <Plus size={16} className="text-primary-600" />
-                      </button>
-                      <button 
-                        onClick={() => openPromotionModal('add')}
-                        className="w-full flex items-center justify-between p-3.5 bg-sand-50 hover:bg-primary-50 rounded-xl border border-primary-100 hover:border-primary-200 text-left text-sm font-medium text-primary-955 transition-all cursor-pointer"
-                      >
-                        <span>Add Special Offer Banner</span>
                         <Plus size={16} className="text-primary-600" />
                       </button>
                     </div>
@@ -928,8 +966,8 @@ export default function AdminDashboard({ onLogout }) {
             {activeTab === 'homepage' && (
               <form onSubmit={handleSaveSettings} className="space-y-6 bg-white p-6 sm:p-10 rounded-3xl border border-primary-100 shadow-xs">
                 <div>
-                  <h1 className="font-display font-bold text-2xl text-primary-950">Home Page Settings</h1>
-                  <p className="text-sand-500 text-sm">Configure Hero, Banners, Logos, and business taglines</p>
+                  <h1 className="font-display font-bold text-2xl text-primary-955">Home Page Content</h1>
+                  <p className="text-sand-500 text-sm">Manage Home Page texts, taglines, and buttons</p>
                 </div>
 
                 {/* Hero section visible status */}
@@ -941,188 +979,204 @@ export default function AdminDashboard({ onLogout }) {
                     onChange={(e) => setSiteSettings({ ...siteSettings, heroVisible: e.target.checked })}
                     className="h-4.5 w-4.5 text-primary-600 focus:ring-primary-500 rounded border-primary-300"
                   />
-                  <label htmlFor="hero-visible" className="text-sm font-semibold text-primary-950 select-none">
+                  <label htmlFor="hero-visible" className="text-sm font-semibold text-primary-955 select-none">
                     Make Hero Banner visible on the home page
                   </label>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                  {/* Left inputs */}
-                  <div className="space-y-4">
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-primary-900 block">Business Name</label>
+                    <input
+                      type="text"
+                      value={siteSettings.businessName || ''}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, businessName: e.target.value })}
+                      className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-primary-900 block">Hero Title Header</label>
+                    <input
+                      type="text"
+                      value={siteSettings.heroTitle || ''}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, heroTitle: e.target.value })}
+                      className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-primary-900 block">Hero Tagline Subtitle</label>
+                    <textarea
+                      value={siteSettings.heroSubtitle || ''}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, heroSubtitle: e.target.value })}
+                      rows="3"
+                      className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                      required
+                    ></textarea>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Business Name</label>
+                      <label className="text-sm font-bold text-primary-900 block">Hero Button Text</label>
                       <input
                         type="text"
-                        value={siteSettings.businessName || ''}
-                        onChange={(e) => setSiteSettings({ ...siteSettings, businessName: e.target.value })}
+                        value={siteSettings.heroButtonText || ''}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, heroButtonText: e.target.value })}
                         className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Hero Title Header</label>
+                      <label className="text-sm font-bold text-primary-900 block">Hero Button Link</label>
                       <input
                         type="text"
-                        value={siteSettings.heroTitle || ''}
-                        onChange={(e) => setSiteSettings({ ...siteSettings, heroTitle: e.target.value })}
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Hero Tagline Subtitle</label>
-                      <textarea
-                        value={siteSettings.heroSubtitle || ''}
-                        onChange={(e) => setSiteSettings({ ...siteSettings, heroSubtitle: e.target.value })}
-                        rows="3"
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      ></textarea>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-bold text-primary-900 block">Hero Button Text</label>
-                        <input
-                          type="text"
-                          value={siteSettings.heroButtonText || ''}
-                          onChange={(e) => setSiteSettings({ ...siteSettings, heroButtonText: e.target.value })}
-                          className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-bold text-primary-900 block">Hero Button Link</label>
-                        <input
-                          type="text"
-                          value={siteSettings.heroButtonLink || ''}
-                          onChange={(e) => setSiteSettings({ ...siteSettings, heroButtonLink: e.target.value })}
-                          className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">About Welcome Intro Text</label>
-                      <textarea
-                        value={siteSettings.aboutIntro || ''}
-                        onChange={(e) => setSiteSettings({ ...siteSettings, aboutIntro: e.target.value })}
-                        rows="3"
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      ></textarea>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Footer Copyright Text</label>
-                      <input
-                        type="text"
-                        value={siteSettings.footerText || ''}
-                        onChange={(e) => setSiteSettings({ ...siteSettings, footerText: e.target.value })}
+                        value={siteSettings.heroButtonLink || ''}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, heroButtonLink: e.target.value })}
                         className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
                         required
                       />
                     </div>
                   </div>
 
-                  {/* Right Image Uploaders */}
-                  <div className="space-y-6">
-                    {/* Logo Uploader */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Business Logo</label>
-                      <div className="flex items-center gap-4">
-                        <div className="h-16 w-16 rounded-full bg-sand-100 border border-primary-200 flex items-center justify-center overflow-hidden shrink-0">
-                          {siteSettings.logoUrl ? (
-                            <img src={siteSettings.logoUrl} alt="Logo" className="h-full w-full object-cover" />
-                          ) : (
-                            <ImageIcon className="text-sand-400" size={24} />
-                          )}
-                        </div>
-                        <div className="relative">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleImageUpload(e.target.files[0], 'logo')}
-                            className="hidden"
-                            id="logo-upload"
-                          />
-                          <label htmlFor="logo-upload" className="inline-flex items-center gap-2 bg-primary-50 border border-primary-200 hover:bg-primary-100 text-primary-800 text-xs font-semibold px-4 py-2.5 rounded-xl cursor-pointer">
-                            <Upload size={14} />
-                            <span>Upload Logo</span>
-                          </label>
-                        </div>
-                        {siteSettings.logoUrl && (
-                          <button 
-                            type="button" 
-                            onClick={() => setSiteSettings({ ...siteSettings, logoUrl: '' })} 
-                            className="text-xs text-rose-600 hover:underline font-semibold"
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-primary-900 block">About Welcome Intro Text</label>
+                    <textarea
+                      value={siteSettings.aboutIntro || ''}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, aboutIntro: e.target.value })}
+                      rows="3"
+                      className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                      required
+                    ></textarea>
+                  </div>
 
-                    {/* Favicon Uploader */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Favicon</label>
-                      <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-lg bg-sand-100 border border-primary-200 flex items-center justify-center overflow-hidden shrink-0">
-                          {siteSettings.faviconUrl ? (
-                            <img src={siteSettings.faviconUrl} alt="Favicon" className="h-full w-full object-cover" />
-                          ) : (
-                            <ImageIcon className="text-sand-400" size={16} />
-                          )}
-                        </div>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(e.target.files[0], 'favicon')}
-                          className="hidden"
-                          id="favicon-upload"
-                        />
-                        <label htmlFor="favicon-upload" className="inline-flex items-center gap-2 bg-primary-50 border border-primary-200 hover:bg-primary-100 text-primary-800 text-xs font-semibold px-3 py-2 rounded-xl cursor-pointer">
-                          <Upload size={12} />
-                          <span>Upload Favicon</span>
-                        </label>
-                      </div>
-                    </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-primary-900 block">Footer Copyright Text</label>
+                    <input
+                      type="text"
+                      value={siteSettings.footerText || ''}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, footerText: e.target.value })}
+                      className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                      required
+                    />
+                  </div>
+                </div>
 
-                    {/* Hero Image Uploader */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Hero Banner Image</label>
-                      <div className="space-y-3">
-                        <div className="h-44 w-full rounded-2xl bg-sand-100 border border-primary-200 flex items-center justify-center overflow-hidden">
-                          {siteSettings.heroImageUrl ? (
-                            <img src={siteSettings.heroImageUrl} alt="Hero Banner" className="h-full w-full object-cover" />
-                          ) : (
-                            <ImageIcon className="text-sand-400" size={32} />
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleImageUpload(e.target.files[0], 'hero')}
-                            className="hidden"
-                            id="hero-upload"
-                          />
-                          <label htmlFor="hero-upload" className="inline-flex items-center gap-2 bg-primary-50 border border-primary-200 hover:bg-primary-100 text-primary-800 text-xs font-semibold px-4 py-2.5 rounded-xl cursor-pointer">
-                            <Upload size={14} />
-                            <span>Upload Banner</span>
-                          </label>
-                          {siteSettings.heroImageUrl && (
-                            <button 
-                              type="button" 
-                              onClick={() => setSiteSettings({ ...siteSettings, heroImageUrl: '' })} 
-                              className="text-xs text-rose-600 hover:underline font-semibold"
-                            >
-                              Remove
-                            </button>
-                          )}
-                        </div>
-                      </div>
+                <div className="pt-6 border-t border-primary-50 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-6 py-3 rounded-xl cursor-pointer"
+                  >
+                    <Save size={18} />
+                    <span>Save Changes</span>
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Website Images Management Tab */}
+            {activeTab === 'website_images' && (
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                setSaving(true);
+                try {
+                  await Promise.all([
+                    api.settings.update(siteSettings),
+                    api.about.update(aboutContent)
+                  ]);
+                  showToast('Website images updated successfully');
+                  loadData();
+                } catch (err) {
+                  showToast(err.message || 'Error saving images', 'error');
+                } finally {
+                  setSaving(false);
+                }
+              }} className="space-y-6 bg-white p-6 sm:p-10 rounded-3xl border border-primary-100 shadow-xs">
+                <div>
+                  <h1 className="font-display font-bold text-2xl text-primary-955">Website Images</h1>
+                  <p className="text-sand-500 text-sm">Replace key images across the Home Page and About Us page</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                  {/* Home Hero Image */}
+                  <div className="space-y-3 p-4 bg-sand-50 rounded-2xl border border-primary-50">
+                    <label className="text-sm font-bold text-primary-900 block">Home Page Hero Image</label>
+                    <div className="h-48 w-full rounded-xl bg-white border border-primary-100 flex items-center justify-center overflow-hidden">
+                      {siteSettings.heroImageUrl ? (
+                        <img src={siteSettings.heroImageUrl} alt="Hero Banner" className="h-full w-full object-cover" />
+                      ) : (
+                        <ImageIcon className="text-sand-300" size={32} />
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e.target.files[0], 'hero')}
+                        className="hidden"
+                        id="hero-image-replace"
+                      />
+                      <label htmlFor="hero-image-replace" className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl cursor-pointer">
+                        <Upload size={14} />
+                        <span>Replace Image</span>
+                      </label>
+                      {siteSettings.heroImageUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setSiteSettings({ ...siteSettings, heroImageUrl: '' })}
+                          className="text-xs font-semibold text-rose-600 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* About Us Our Story Image */}
+                  <div className="space-y-3 p-4 bg-sand-50 rounded-2xl border border-primary-50">
+                    <label className="text-sm font-bold text-primary-900 block">About Us / Our Story Image</label>
+                    <div className="h-48 w-full rounded-xl bg-white border border-primary-100 flex items-center justify-center overflow-hidden">
+                      {aboutContent.storyImageUrl ? (
+                        <img src={aboutContent.storyImageUrl} alt="Our Story" className="h-full w-full object-cover" />
+                      ) : (
+                        <ImageIcon className="text-sand-300" size={32} />
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          setSaving(true);
+                          try {
+                            const data = await api.upload(file);
+                            setAboutContent(prev => ({ ...prev, storyImageUrl: data.imageUrl }));
+                            showToast('Story image uploaded successfully', 'success');
+                          } catch (err) {
+                            showToast('Upload failed', 'error');
+                          } finally {
+                            setSaving(false);
+                          }
+                        }}
+                        className="hidden"
+                        id="story-image-replace"
+                      />
+                      <label htmlFor="story-image-replace" className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl cursor-pointer">
+                        <Upload size={14} />
+                        <span>Replace Image</span>
+                      </label>
+                      {aboutContent.storyImageUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setAboutContent({ ...aboutContent, storyImageUrl: '' })}
+                          className="text-xs font-semibold text-rose-600 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1140,614 +1194,76 @@ export default function AdminDashboard({ onLogout }) {
               </form>
             )}
 
-            {/* About Us Management Tab */}
-            {activeTab === 'aboutus' && (
-              <div className="space-y-6">
-                <div className="bg-white p-6 sm:p-10 rounded-3xl border border-primary-100 shadow-xs">
-                  <div>
-                    <h1 className="font-display font-bold text-2xl text-primary-950">About Us Page CMS</h1>
-                    <p className="text-sand-500 text-sm">Control exactly what, how, and in which order sections appear on the About Us page.</p>
-                  </div>
-
-                  {/* Sub Tab Switcher */}
-                  <div className="flex flex-wrap gap-2 mt-6 border-b border-primary-50 pb-4">
-                    {[
-                      { id: 'general', label: 'General & Order' },
-                      { id: 'story', label: 'Hero & Our Story' },
-                      { id: 'mission_vision', label: 'Mission & Vision' },
-                      { id: 'philosophy', label: 'Philosophy' },
-                      { id: 'quality', label: 'Quality Assurance' },
-                      { id: 'why_choose_us', label: 'Why Choose Us' },
-                      { id: 'values', label: 'Our Values' },
-                      { id: 'gallery', label: 'Gallery' },
-                      { id: 'certifications', label: 'Certifications' },
-                      { id: 'cta', label: 'Bottom CTA' }
-                    ].map(tab => (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        onClick={() => {
-                          setAboutSubTab(tab.id);
-                          setEditItem({ type: null, id: null, form: {} });
-                        }}
-                        className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-full transition-all cursor-pointer ${
-                          aboutSubTab === tab.id
-                            ? 'bg-primary-900 text-white shadow-sm'
-                            : 'bg-primary-50 hover:bg-primary-100 text-primary-900'
-                        }`}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  <form onSubmit={handleSaveAbout} className="space-y-6 mt-6">
-                    {/* SUB-TAB: GENERAL */}
-                    {aboutSubTab === 'general' && (
-                      <div className="space-y-6">
-                        <div className="flex items-center gap-3 bg-sand-50 p-4 rounded-xl border border-primary-100">
-                          <input
-                            type="checkbox"
-                            id="about-enabled"
-                            checked={!!aboutContent.isEnabled}
-                            onChange={(e) => setAboutContent({ ...aboutContent, isEnabled: e.target.checked })}
-                            className="h-4.5 w-4.5 text-primary-600 focus:ring-primary-500 rounded border-primary-300"
-                          />
-                          <label htmlFor="about-enabled" className="text-sm font-semibold text-primary-955 select-none">
-                            Enable About Us Page on customer website
-                          </label>
-                        </div>
-
-                        <div className="space-y-4">
-                          <h3 className="text-base font-bold text-primary-950">Manage Section Display Order & Visibility</h3>
-                          <p className="text-xs text-sand-500">Toggle enabled states and use the Up/Down buttons to reorder layout parts on the live page.</p>
-                          <div className="space-y-2">
-                            {(aboutContent.sections || []).map((sec, idx) => (
-                              <div key={sec.id} className="flex items-center justify-between p-4 bg-sand-50/50 rounded-2xl border border-sand-200/50">
-                                <div className="flex items-center gap-4">
-                                  <input
-                                    type="checkbox"
-                                    checked={!!sec.isEnabled}
-                                    onChange={(e) => {
-                                      const updatedSecs = (aboutContent.sections || []).map(s => s.id === sec.id ? { ...s, isEnabled: e.target.checked } : s);
-                                      setAboutContent({ ...aboutContent, sections: updatedSecs });
-                                    }}
-                                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 rounded border-primary-300"
-                                  />
-                                  <span className="font-semibold text-sm text-primary-900">{sec.title}</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    type="button"
-                                    onClick={() => moveSection(idx, 'up')}
-                                    disabled={idx === 0}
-                                    className="p-1.5 hover:bg-primary-50 disabled:opacity-30 rounded-lg text-primary-800"
-                                  >
-                                    <ArrowUp size={16} />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => moveSection(idx, 'down')}
-                                    disabled={idx === (aboutContent.sections || []).length - 1}
-                                    className="p-1.5 hover:bg-primary-50 disabled:opacity-30 rounded-lg text-primary-800"
-                                  >
-                                    <ArrowDown size={16} />
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* SUB-TAB: HERO & STORY */}
-                    {aboutSubTab === 'story' && (
-                      <div className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <label className="text-sm font-bold text-primary-900 block">About Heading / Hero Title</label>
-                            <input
-                              type="text"
-                              value={aboutContent.heading || ''}
-                              onChange={(e) => setAboutContent({ ...aboutContent, heading: e.target.value })}
-                              className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-bold text-primary-900 block">About Hero Subtitle / Intro</label>
-                            <textarea
-                              value={aboutContent.aboutIntro || ''}
-                              onChange={(e) => setAboutContent({ ...aboutContent, aboutIntro: e.target.value })}
-                              rows="2"
-                              className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                              required
-                            ></textarea>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-primary-50">
-                          <div className="space-y-2">
-                            <label className="text-sm font-bold text-primary-900 block">Our Story Narrative</label>
-                            <textarea
-                              value={aboutContent.ourStory || ''}
-                              onChange={(e) => setAboutContent({ ...aboutContent, ourStory: e.target.value })}
-                              rows="6"
-                              className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                              placeholder="Describe your heritage, start date, and background..."
-                              required
-                            ></textarea>
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-bold text-primary-900 block">Our Story Image</label>
-                            <div className="flex items-center gap-4 pt-2">
-                              <div className="h-24 w-24 rounded-2xl bg-sand-100 border border-primary-200 flex items-center justify-center overflow-hidden shrink-0">
-                                {aboutContent.storyImageUrl ? (
-                                  <img src={aboutContent.storyImageUrl} alt="Story visual" className="h-full w-full object-cover" />
-                                ) : (
-                                  <ImageIcon className="text-sand-400" size={28} />
-                                )}
-                              </div>
-                              <div className="space-y-2">
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => handleImageUpload(e.target.files[0], 'about')}
-                                  className="hidden"
-                                  id="story-image-upload"
-                                />
-                                <label htmlFor="story-image-upload" className="inline-flex items-center gap-2 bg-primary-50 border border-primary-200 hover:bg-primary-100 text-primary-800 text-xs font-semibold px-4 py-2.5 rounded-xl cursor-pointer">
-                                  <Upload size={14} />
-                                  <span>Upload Story Image</span>
-                                </label>
-                                {aboutContent.storyImageUrl && (
-                                  <button
-                                    type="button"
-                                    onClick={() => setAboutContent({ ...aboutContent, storyImageUrl: '' })}
-                                    className="block text-xs font-semibold text-red-600 hover:underline text-left"
-                                  >
-                                    Remove Image
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* SUB-TAB: MISSION & VISION */}
-                    {aboutSubTab === 'mission_vision' && (
-                      <div className="space-y-6">
-                        <div className="space-y-2">
-                          <label className="text-sm font-bold text-primary-900 block">Our Mission Statement</label>
-                          <textarea
-                            value={aboutContent.mission || ''}
-                            onChange={(e) => setAboutContent({ ...aboutContent, mission: e.target.value })}
-                            rows="4"
-                            className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                            required
-                          ></textarea>
-                        </div>
-                        <div className="space-y-2 pt-4 border-t border-primary-50">
-                          <label className="text-sm font-bold text-primary-900 block">Our Vision Statement</label>
-                          <textarea
-                            value={aboutContent.vision || ''}
-                            onChange={(e) => setAboutContent({ ...aboutContent, vision: e.target.value })}
-                            rows="4"
-                            className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                            required
-                          ></textarea>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* SUB-TAB: LISTS (PHILOSOPHY, QUALITY, WHY CHOOSE US, VALUES, GALLERY, CERTIFICATIONS) */}
-                    {['philosophy', 'quality', 'why_choose_us', 'values', 'gallery', 'certifications'].includes(aboutSubTab) && (
-                      <div className="space-y-6">
-                        {/* Subheading Intro editing */}
-                        <div className="space-y-2 p-4 bg-sand-50/50 rounded-2xl border border-sand-150">
-                          <label className="text-sm font-bold text-primary-900 block">
-                            {aboutSubTab === 'philosophy' && 'Philosophy Section Subtitle'}
-                            {aboutSubTab === 'quality' && 'Quality Assurance Section Subtitle'}
-                            {aboutSubTab === 'why_choose_us' && 'Why Choose Us Section Subtitle'}
-                            {aboutSubTab === 'values' && 'Values Section Subtitle'}
-                            {aboutSubTab === 'gallery' && 'Gallery Section Subtitle'}
-                            {aboutSubTab === 'certifications' && 'Certifications Section Subtitle'}
-                          </label>
-                          <textarea
-                            value={
-                              aboutSubTab === 'philosophy' ? (aboutContent.philosophyIntro || '') :
-                              aboutSubTab === 'quality' ? (aboutContent.qualityIntro || '') :
-                              aboutSubTab === 'why_choose_us' ? (aboutContent.whyChooseUsIntro || '') :
-                              aboutSubTab === 'values' ? (aboutContent.valuesIntro || '') :
-                              aboutSubTab === 'gallery' ? (aboutContent.galleryIntro || '') :
-                              (aboutContent.certificationsIntro || '')
-                            }
-                            onChange={(e) => {
-                              const field = 
-                                aboutSubTab === 'philosophy' ? 'philosophyIntro' :
-                                aboutSubTab === 'quality' ? 'qualityIntro' :
-                                aboutSubTab === 'why_choose_us' ? 'whyChooseUsIntro' :
-                                aboutSubTab === 'values' ? 'valuesIntro' :
-                                aboutSubTab === 'gallery' ? 'galleryIntro' :
-                                'certificationsIntro';
-                              setAboutContent({ ...aboutContent, [field]: e.target.value });
-                            }}
-                            rows="2"
-                            className="w-full p-3 bg-white border border-primary-100 rounded-xl text-sm"
-                          ></textarea>
-                        </div>
-
-                        {/* Gallery / Certs Titles */}
-                        {aboutSubTab === 'gallery' && (
-                          <div className="space-y-2">
-                            <label className="text-sm font-bold text-primary-900 block">Gallery Section Title</label>
-                            <input
-                              type="text"
-                              value={aboutContent.galleryTitle || ''}
-                              onChange={(e) => setAboutContent({ ...aboutContent, galleryTitle: e.target.value })}
-                              className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                            />
-                          </div>
-                        )}
-                        {aboutSubTab === 'certifications' && (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <label className="text-sm font-bold text-primary-900 block">Certifications Section Title</label>
-                              <input
-                                type="text"
-                                value={aboutContent.certificationsTitle || ''}
-                                onChange={(e) => setAboutContent({ ...aboutContent, certificationsTitle: e.target.value })}
-                                className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                              />
-                            </div>
-                            <div className="flex items-center gap-3 mt-6 bg-sand-50 p-4 rounded-xl border border-primary-100">
-                              <input
-                                type="checkbox"
-                                id="certs-enabled"
-                                checked={!!aboutContent.certificationsEnabled}
-                                onChange={(e) => setAboutContent({ ...aboutContent, certificationsEnabled: e.target.checked })}
-                                className="h-4.5 w-4.5 text-primary-600 focus:ring-primary-500 rounded border-primary-300"
-                              />
-                              <label htmlFor="certs-enabled" className="text-sm font-semibold text-primary-955 select-none">
-                                Enable Certifications Section on site
-                              </label>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* CRUD Form / List Section */}
-                        <div className="border-t border-primary-50 pt-6">
-                          {editItem.type === aboutSubTab ? (
-                            // Add/Edit Sub-item Form
-                            <div className="bg-sand-50/30 p-6 rounded-3xl border border-primary-150 space-y-4">
-                              <h3 className="font-bold text-lg text-primary-950">
-                                {editItem.id ? 'Edit Item' : 'Add New Item'}
-                              </h3>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {aboutSubTab !== 'gallery' && (
-                                  <div className="space-y-2">
-                                    <label className="text-sm font-bold text-primary-900 block">Title</label>
-                                    <input
-                                      type="text"
-                                      value={editItem.form.title || ''}
-                                      onChange={(e) => setEditItem({ ...editItem, form: { ...editItem.form, title: e.target.value } })}
-                                      className="w-full p-3 bg-white border border-primary-100 rounded-xl text-sm"
-                                      required
-                                    />
-                                  </div>
-                                )}
-                                {['philosophy', 'quality', 'why_choose_us', 'values'].includes(aboutSubTab) && (
-                                  <div className="space-y-2">
-                                    <label className="text-sm font-bold text-primary-900 block">Lucide Icon Name</label>
-                                    <select
-                                      value={editItem.form.icon || 'Leaf'}
-                                      onChange={(e) => setEditItem({ ...editItem, form: { ...editItem.form, icon: e.target.value } })}
-                                      className="w-full p-3 bg-white border border-primary-100 rounded-xl text-sm"
-                                    >
-                                      {['Leaf', 'Heart', 'Award', 'Shield', 'Activity', 'CheckCircle', 'Compass', 'BookOpen', 'Sparkles', 'Clock', 'User', 'MessageSquare', 'Briefcase', 'ShieldCheck'].map(ico => (
-                                        <option key={ico} value={ico}>{ico}</option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                )}
-                                {aboutSubTab === 'certifications' && (
-                                  <div className="space-y-2">
-                                    <label className="text-sm font-bold text-primary-900 block">Issuer</label>
-                                    <input
-                                      type="text"
-                                      value={editItem.form.issuer || ''}
-                                      onChange={(e) => setEditItem({ ...editItem, form: { ...editItem.form, issuer: e.target.value } })}
-                                      className="w-full p-3 bg-white border border-primary-100 rounded-xl text-sm"
-                                      placeholder="e.g. Govt of India, ISO"
-                                    />
-                                  </div>
-                                )}
-                                {['gallery', 'certifications'].includes(aboutSubTab) && (
-                                  <div className="space-y-2">
-                                    <label className="text-sm font-bold text-primary-900 block">Image</label>
-                                    <div className="flex items-center gap-4">
-                                      <div className="h-16 w-16 rounded-xl bg-white border border-primary-200 flex items-center justify-center overflow-hidden shrink-0">
-                                        {editItem.form.imageUrl ? (
-                                          <img src={editItem.form.imageUrl} alt="Sub-item preview" className="h-full w-full object-cover" />
-                                        ) : (
-                                          <ImageIcon className="text-sand-400" size={20} />
-                                        )}
-                                      </div>
-                                      <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={async (e) => {
-                                          const file = e.target.files[0];
-                                          if (!file) return;
-                                          setSaving(true);
-                                          try {
-                                            const uploadData = await api.upload(file);
-                                            setEditItem(prev => ({
-                                              ...prev,
-                                              form: { ...prev.form, imageUrl: uploadData.imageUrl }
-                                            }));
-                                            showToast('Image uploaded successfully', 'success');
-                                          } catch (err) {
-                                            showToast('Image upload failed', 'error');
-                                          } finally {
-                                            setSaving(false);
-                                          }
-                                        }}
-                                        className="hidden"
-                                        id="subitem-upload"
-                                      />
-                                      <label htmlFor="subitem-upload" className="inline-flex items-center gap-2 bg-white border border-primary-200 hover:bg-primary-50 text-primary-800 text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer">
-                                        <Upload size={14} />
-                                        <span>Upload File</span>
-                                      </label>
-                                    </div>
-                                  </div>
-                                )}
-                                {aboutSubTab === 'gallery' && (
-                                  <div className="space-y-2">
-                                    <label className="text-sm font-bold text-primary-900 block">Caption / Title</label>
-                                    <input
-                                      type="text"
-                                      value={editItem.form.title || ''}
-                                      onChange={(e) => setEditItem({ ...editItem, form: { ...editItem.form, title: e.target.value } })}
-                                      className="w-full p-3 bg-white border border-primary-100 rounded-xl text-sm"
-                                      placeholder="Optional image caption..."
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                              <div className="space-y-2">
-                                <label className="text-sm font-bold text-primary-900 block">Description</label>
-                                <textarea
-                                  value={editItem.form.description || ''}
-                                  onChange={(e) => setEditItem({ ...editItem, form: { ...editItem.form, description: e.target.value } })}
-                                  rows="3"
-                                  className="w-full p-3 bg-white border border-primary-100 rounded-xl text-sm"
-                                  placeholder="Describe this item detail..."
-                                  required={aboutSubTab !== 'gallery' && aboutSubTab !== 'certifications'}
-                                ></textarea>
-                              </div>
-                              <div className="flex justify-end gap-2 pt-2">
-                                <button
-                                  type="button"
-                                  onClick={() => setEditItem({ type: null, id: null, form: {} })}
-                                  className="px-5 py-2 border border-sand-300 text-sand-700 font-semibold rounded-xl text-sm hover:bg-sand-50"
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={handleSaveSubItem}
-                                  className="px-5 py-2 bg-primary-900 text-white font-semibold rounded-xl text-sm hover:bg-primary-950"
-                                >
-                                  Save Item
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            // Sub-items List view
-                            <div className="space-y-4">
-                              <div className="flex justify-between items-center">
-                                <h3 className="font-bold text-lg text-primary-950 uppercase tracking-wider">
-                                  {aboutSubTab === 'philosophy' && 'Philosophy Principles'}
-                                  {aboutSubTab === 'quality' && 'Quality Sourcing Items'}
-                                  {aboutSubTab === 'why_choose_us' && 'Why Choose Us Reasons'}
-                                  {aboutSubTab === 'values' && 'Values List'}
-                                  {aboutSubTab === 'gallery' && 'Gallery Images'}
-                                  {aboutSubTab === 'certifications' && 'Certifications List'}
-                                </h3>
-                                <button
-                                  type="button"
-                                  onClick={() => setEditItem({ type: aboutSubTab, id: null, form: { displayOrder: (aboutContent[`${aboutSubTab}Items`] || aboutContent[aboutSubTab] || []).length } })}
-                                  className="inline-flex items-center gap-2 bg-primary-900 hover:bg-primary-950 text-white text-xs font-semibold px-4 py-2.5 rounded-xl cursor-pointer"
-                                >
-                                  <Plus size={14} />
-                                  <span>Add Item</span>
-                                </button>
-                              </div>
-
-                              {/* Items Cards Grid */}
-                              {(() => {
-                                const list = 
-                                  aboutSubTab === 'philosophy' ? aboutContent.philosophyItems :
-                                  aboutSubTab === 'quality' ? aboutContent.qualityItems :
-                                  aboutSubTab === 'why_choose_us' ? aboutContent.whyChooseUsItems :
-                                  aboutSubTab === 'values' ? aboutContent.valueItems :
-                                  aboutSubTab === 'gallery' ? aboutContent.galleryImages :
-                                  aboutContent.certifications;
-
-                                if (!list || list.length === 0) {
-                                  return (
-                                    <div className="text-center p-8 bg-sand-50/50 rounded-2xl border border-dashed border-sand-300">
-                                      <p className="text-sand-500 text-sm">No items configured yet. Click 'Add Item' to create one.</p>
-                                    </div>
-                                  );
-                                }
-
-                                return (
-                                  <div className="grid grid-cols-1 gap-3">
-                                    {list.map((item, idx) => (
-                                      <div key={item.id} className="flex items-center justify-between p-4 bg-sand-50/30 rounded-2xl border border-sand-150 hover:bg-white transition-all duration-300">
-                                        <div className="flex items-center gap-4">
-                                          {/* Icon or Image Preview */}
-                                          {['gallery', 'certifications'].includes(aboutSubTab) ? (
-                                            <div className="h-12 w-12 rounded-lg bg-sand-100 border overflow-hidden shrink-0 flex items-center justify-center">
-                                              {item.imageUrl ? (
-                                                <img src={item.imageUrl} alt="" className="h-full w-full object-cover" />
-                                              ) : (
-                                                <ImageIcon size={20} className="text-sand-400" />
-                                              )}
-                                            </div>
-                                          ) : (
-                                            <div className="h-10 w-10 rounded-xl bg-primary-50 flex items-center justify-center text-primary-700 shrink-0">
-                                              {renderIcon(item.icon, "text-primary-700", 20)}
-                                            </div>
-                                          )}
-                                          <div className="space-y-0.5">
-                                            <h4 className="font-bold text-sm text-primary-950">
-                                              {item.title || item.imageUrl.split('/').pop().slice(0, 15)}
-                                            </h4>
-                                            {item.description && <p className="text-sand-500 text-xs truncate max-w-md">{item.description}</p>}
-                                          </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                          {/* Visibility Toggle */}
-                                          <button
-                                            type="button"
-                                            onClick={async () => {
-                                              try {
-                                                await api.about[aboutSubTab].update(item.id, { isEnabled: !item.isEnabled });
-                                                showToast('Item visibility updated');
-                                                const updated = await api.about.get();
-                                                setAboutContent(updated);
-                                              } catch (err) {
-                                                showToast('Error updating item', 'error');
-                                              }
-                                            }}
-                                            className={`px-2 py-1 text-xs font-semibold rounded ${
-                                              item.isEnabled ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
-                                            }`}
-                                          >
-                                            {item.isEnabled ? 'Visible' : 'Hidden'}
-                                          </button>
-                                          {/* Move Up/Down */}
-                                          <button
-                                            type="button"
-                                            onClick={() => handleMoveSubItem(aboutSubTab, idx, 'up', list)}
-                                            disabled={idx === 0}
-                                            className="p-1 hover:bg-sand-100 disabled:opacity-30 rounded text-sand-600"
-                                          >
-                                            <ArrowUp size={14} />
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={() => handleMoveSubItem(aboutSubTab, idx, 'down', list)}
-                                            disabled={idx === list.length - 1}
-                                            className="p-1 hover:bg-sand-100 disabled:opacity-30 rounded text-sand-600"
-                                          >
-                                            <ArrowDown size={14} />
-                                          </button>
-                                          {/* Edit / Delete */}
-                                          <button
-                                            type="button"
-                                            onClick={() => setEditItem({ type: aboutSubTab, id: item.id, form: { ...item } })}
-                                            className="p-1 hover:bg-sand-100 rounded text-blue-600"
-                                          >
-                                            <Edit size={14} />
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={() => handleDeleteSubItem(aboutSubTab, item.id)}
-                                            className="p-1 hover:bg-sand-100 rounded text-red-600"
-                                          >
-                                            <Trash2 size={14} />
-                                          </button>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                );
-                              })()}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* SUB-TAB: BOTTOM CTA */}
-                    {aboutSubTab === 'cta' && (
-                      <div className="space-y-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <label className="text-sm font-bold text-primary-900 block">CTA Section Title</label>
-                            <input
-                              type="text"
-                              value={aboutContent.ctaTitle || ''}
-                              onChange={(e) => setAboutContent({ ...aboutContent, ctaTitle: e.target.value })}
-                              className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-bold text-primary-900 block">Primary Action Button Link</label>
-                            <input
-                              type="text"
-                              value={aboutContent.ctaButtonLink || ''}
-                              onChange={(e) => setAboutContent({ ...aboutContent, ctaButtonLink: e.target.value })}
-                              className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-bold text-primary-900 block">Primary Action Button Text</label>
-                            <input
-                              type="text"
-                              value={aboutContent.ctaButtonText || ''}
-                              onChange={(e) => setAboutContent({ ...aboutContent, ctaButtonText: e.target.value })}
-                              className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                              required
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-bold text-primary-900 block">WhatsApp Action Button Text</label>
-                            <input
-                              type="text"
-                              value={aboutContent.ctaWhatsAppText || ''}
-                              onChange={(e) => setAboutContent({ ...aboutContent, ctaWhatsAppText: e.target.value })}
-                              className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                              required
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Submit Bar */}
-                    {!editItem.type && (
-                      <div className="pt-6 border-t border-primary-50 flex justify-end">
-                        <button
-                          type="submit"
-                          disabled={saving}
-                          className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-6 py-3 rounded-xl cursor-pointer shadow-xs transition-colors"
-                        >
-                          <Save size={18} />
-                          <span>Save About Content Changes</span>
-                        </button>
-                      </div>
-                    )}
-                  </form>
+            {/* Logo Management Tab */}
+            {activeTab === 'logo' && (
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                setSaving(true);
+                try {
+                  await api.settings.update(siteSettings);
+                  showToast('Logo settings updated successfully');
+                  loadData();
+                } catch (err) {
+                  showToast(err.message || 'Error saving logo', 'error');
+                } finally {
+                  setSaving(false);
+                }
+              }} className="space-y-6 bg-white p-6 sm:p-10 rounded-3xl border border-primary-100 shadow-xs max-w-xl">
+                <div>
+                  <h1 className="font-display font-bold text-2xl text-primary-955">Website Logo</h1>
+                  <p className="text-sand-500 text-sm">Replace the brand logo displayed in the header and footer</p>
                 </div>
-              </div>
+
+                <div className="space-y-4 pt-4">
+                  <label className="text-sm font-bold text-primary-900 block">Current Logo</label>
+                  <div className="h-32 w-32 rounded-full bg-sand-50 border border-primary-200 flex items-center justify-center overflow-hidden p-1 shadow-sm">
+                    {siteSettings.logoUrl ? (
+                      <img src={siteSettings.logoUrl} alt="Logo" className="h-full w-full object-contain rounded-full" />
+                    ) : (
+                      <ImageIcon className="text-sand-400" size={32} />
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-3 pt-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e.target.files[0], 'logo')}
+                      className="hidden"
+                      id="logo-upload-tab"
+                    />
+                    <label htmlFor="logo-upload-tab" className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl cursor-pointer">
+                      <Upload size={14} />
+                      <span>Replace Logo</span>
+                    </label>
+                    {siteSettings.logoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setSiteSettings({ ...siteSettings, logoUrl: '' })}
+                        className="text-xs font-semibold text-rose-600 hover:underline"
+                      >
+                        Remove Logo
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-primary-50 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-6 py-3 rounded-xl cursor-pointer"
+                  >
+                    <Save size={18} />
+                    <span>Save Logo</span>
+                  </button>
+                </div>
+              </form>
             )}
 
             {/* Medicine Management Tab */}
             {activeTab === 'medicines' && (
               <div className="space-y-6">
-                
                 {/* 1. Sub-tab headers (Medicines & Categories Switcher) */}
                 {!selectedCategory && (
                   <div className="flex border-b border-primary-100 pb-2 gap-4">
@@ -1832,7 +1348,8 @@ export default function AdminDashboard({ onLogout }) {
                               <th className="py-4 px-6">Image</th>
                               <th className="py-4 px-6">English Name</th>
                               <th className="py-4 px-6">Telugu Name</th>
-                              <th className="py-4 px-6 text-center">Status</th>
+                              <th className="py-4 px-6">Price</th>
+                              <th className="py-4 px-6">Description</th>
                               <th className="py-4 px-6 text-center">Actions</th>
                             </tr>
                           </thead>
@@ -1853,7 +1370,7 @@ export default function AdminDashboard({ onLogout }) {
                               if (categoryMeds.length === 0) {
                                 return (
                                   <tr>
-                                    <td colSpan="5" className="text-center py-12 text-sand-400 font-medium">
+                                    <td colSpan="6" className="text-center py-12 text-sand-400 font-medium">
                                       No medicines found in this category. Click "Add New Medicine" to create one.
                                     </td>
                                   </tr>
@@ -1865,22 +1382,26 @@ export default function AdminDashboard({ onLogout }) {
                                   <td className="py-4 px-6">
                                     <div className="h-12 w-12 rounded-lg bg-sand-100 border border-primary-100 flex items-center justify-center overflow-hidden">
                                       {med.imageUrl ? (
-                                        <img src={med.imageUrl} alt={med.englishName} className="h-full w-full object-cover" />
+                                        <img src={med.imageUrl} alt={med.englishName || ''} className="h-full w-full object-cover" />
                                       ) : (
                                         <ImageIcon className="text-sand-400" size={18} />
                                       )}
                                     </div>
                                   </td>
                                   <td className="py-4 px-6 font-semibold text-primary-955">{med.englishName || '-'}</td>
-                                  <td className="py-4 px-6 text-sand-600 font-medium">{med.teluguName}</td>
-                                  <td className="py-4 px-6 text-center">
-                                    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold border ${
-                                      med.isActive && med.availability === 'AVAILABLE'
-                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                        : 'bg-sand-150 text-sand-600 border-sand-200'
-                                    }`}>
-                                      {med.isActive ? (med.availability === 'AVAILABLE' ? 'Active' : 'Out of Stock') : 'Inactive'}
-                                    </span>
+                                  <td className="py-4 px-6 text-sand-600 font-medium">{med.teluguName || '-'}</td>
+                                  <td className="py-4 px-6 font-semibold text-accent-700 font-mono">
+                                    {med.discountPrice ? (
+                                      <div>
+                                        <span>₹{med.discountPrice}</span>
+                                        <span className="text-xs text-sand-400 line-through ml-1.5 font-normal">₹{med.price}</span>
+                                      </div>
+                                    ) : (
+                                      `₹${med.price}`
+                                    )}
+                                  </td>
+                                  <td className="py-4 px-6 text-xs text-sand-500 max-w-xs truncate" title={med.description}>
+                                    {med.shortDescription || med.description || '-'}
                                   </td>
                                   <td className="py-4 px-6">
                                     <div className="flex items-center justify-center gap-3">
@@ -1917,7 +1438,7 @@ export default function AdminDashboard({ onLogout }) {
                       <div className="space-y-6">
                         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                           <div>
-                            <h1 className="font-display font-bold text-2xl text-primary-950">Medicine Management</h1>
+                            <h1 className="font-display font-bold text-2xl text-primary-955">MEDICINE MANAGEMENT</h1>
                             <p className="text-sand-500 text-sm">Search, add, and manage your remedies catalog</p>
                           </div>
                           
@@ -1926,113 +1447,208 @@ export default function AdminDashboard({ onLogout }) {
                             className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-5 py-2.5 rounded-xl shadow-xs transition-colors cursor-pointer text-sm font-bold"
                           >
                             <Plus size={16} />
-                            <span>Add Medicine</span>
+                            <span>+ Add Medicine</span>
                           </button>
                         </div>
 
-                        {/* Search bar */}
-                        <div className="relative max-w-md">
-                          <input
-                            type="text"
-                            placeholder="Search all medicines..."
-                            value={medicineSearchQuery}
-                            onChange={(e) => setMedicineSearchQuery(e.target.value)}
-                            className="w-full p-3 pl-10 bg-white border border-primary-100 rounded-xl text-sm"
-                          />
-                          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sand-400" size={16} />
+                        {/* Search and Category Filter controls */}
+                        <div className="flex flex-col sm:flex-row gap-4 items-center">
+                          <div className="relative w-full sm:max-w-md">
+                            <input
+                              type="text"
+                              placeholder="Search by medicine name..."
+                              value={medicineSearchQuery}
+                              onChange={(e) => setMedicineSearchQuery(e.target.value)}
+                              className="w-full p-3 pl-10 bg-white border border-primary-100 rounded-xl text-sm"
+                            />
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sand-400" size={16} />
+                          </div>
+
+                          <div className="relative w-full sm:max-w-xs">
+                            <select
+                              value={selectedCategoryFilter}
+                              onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+                              className="w-full p-3 bg-white border border-primary-100 rounded-xl text-sm cursor-pointer pr-10 font-medium text-primary-950"
+                            >
+                              <option value="">All Categories</option>
+                              {categories.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                  {c.englishName} ({c.teluguName})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
 
-                        {/* Global Medicines Table */}
-                        <div className="bg-white rounded-3xl border border-primary-100 shadow-xs overflow-hidden">
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm border-collapse">
-                              <thead>
-                                <tr className="border-b border-primary-100 bg-sand-50/50 text-sand-500 font-semibold">
-                                  <th className="py-4 px-6">Image</th>
-                                  <th className="py-4 px-6">English Name</th>
-                                  <th className="py-4 px-6">Telugu Name</th>
-                                  <th className="py-4 px-6">Category/Categories</th>
-                                  <th className="py-4 px-6">Quantity</th>
-                                  <th className="py-4 px-6 text-center">Status</th>
-                                  <th className="py-4 px-6 text-center">Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {(() => {
-                                  const filtered = medicines.filter(med => {
-                                    const q = medicineSearchQuery.toLowerCase().trim();
-                                    if (!q) return true;
-                                    return (med.englishName && med.englishName.toLowerCase().includes(q)) ||
-                                           (med.teluguName && med.teluguName.toLowerCase().includes(q)) ||
-                                           (med.description && med.description.toLowerCase().includes(q)) ||
-                                           (med.categories && med.categories.some(c => c.englishName.toLowerCase().includes(q)));
-                                  });
+                        {/* Global Medicines View */}
+                        {(() => {
+                          const filtered = medicines.filter(med => {
+                            const q = medicineSearchQuery.toLowerCase().trim();
+                            const matchesSearch = !q ||
+                              (med.englishName && med.englishName.toLowerCase().includes(q)) ||
+                              (med.teluguName && med.teluguName.toLowerCase().includes(q));
+                            
+                            const matchesCategory = !selectedCategoryFilter ||
+                              (med.categories && med.categories.some(c => c.id === parseInt(selectedCategoryFilter)));
+                            
+                            return matchesSearch && matchesCategory;
+                          });
 
-                                  if (filtered.length === 0) {
-                                    return (
-                                      <tr>
-                                        <td colSpan="7" className="text-center py-12 text-sand-400 font-medium">No medicines found matching the search.</td>
+                          if (medicines.length === 0) {
+                            return (
+                              <div className="text-center py-16 bg-white rounded-3xl border border-primary-100 shadow-xs p-8 flex flex-col items-center justify-center space-y-4">
+                                <span className="text-sand-400 font-medium text-base">No medicines added yet.</span>
+                                <button
+                                  onClick={() => openMedicineModal('add')}
+                                  className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-5 py-2.5 rounded-xl shadow-xs transition-colors cursor-pointer text-sm font-bold"
+                                >
+                                  <Plus size={16} />
+                                  <span>+ Add Medicine</span>
+                                </button>
+                              </div>
+                            );
+                          }
+
+                          if (filtered.length === 0) {
+                            return (
+                              <div className="text-center py-16 bg-white rounded-3xl border border-primary-100 shadow-xs p-8">
+                                <span className="text-sand-400 font-medium text-base">No medicines found matching the search/filter criteria.</span>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <>
+                              {/* Desktop Table View */}
+                              <div className="hidden md:block bg-white rounded-3xl border border-primary-100 shadow-xs overflow-hidden">
+                                <div className="overflow-x-auto">
+                                  <table className="w-full text-left text-sm border-collapse">
+                                    <thead>
+                                      <tr className="border-b border-primary-100 bg-sand-50/50 text-sand-500 font-semibold">
+                                        <th className="py-4 px-6">Image</th>
+                                        <th className="py-4 px-6">English Name</th>
+                                        <th className="py-4 px-6">Telugu Name</th>
+                                        <th className="py-4 px-6">Category</th>
+                                        <th className="py-4 px-6">Price</th>
+                                        <th className="py-4 px-6">Description</th>
+                                        <th className="py-4 px-6 text-center">Actions</th>
                                       </tr>
-                                    );
-                                  }
+                                    </thead>
+                                    <tbody>
+                                      {filtered.map((med) => (
+                                        <tr key={med.id} className="border-b border-primary-50 hover:bg-sand-50/50">
+                                          <td className="py-4 px-6">
+                                            <div className="h-12 w-12 rounded-lg bg-sand-100 border border-primary-100 flex items-center justify-center overflow-hidden">
+                                              {med.imageUrl ? (
+                                                <img src={med.imageUrl} alt={med.englishName || ''} className="h-full w-full object-cover" />
+                                              ) : (
+                                                <ImageIcon className="text-sand-400" size={18} />
+                                              )}
+                                            </div>
+                                          </td>
+                                          <td className="py-4 px-6 font-semibold text-primary-955">{med.englishName || '-'}</td>
+                                          <td className="py-4 px-6 text-sand-600 font-medium">{med.teluguName || '-'}</td>
+                                          <td className="py-4 px-6">
+                                            <div className="flex flex-wrap gap-1">
+                                              {med.categories?.map(c => (
+                                                <span key={c.id} className="bg-primary-50 text-primary-800 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                                  {c.englishName}
+                                                </span>
+                                              ))}
+                                            </div>
+                                          </td>
+                                          <td className="py-4 px-6 font-semibold text-accent-700 font-mono">
+                                            {med.discountPrice ? (
+                                              <div>
+                                                <span>₹{med.discountPrice}</span>
+                                                <span className="text-xs text-sand-400 line-through ml-1.5 font-normal">₹{med.price}</span>
+                                              </div>
+                                            ) : (
+                                              `₹${med.price}`
+                                            )}
+                                          </td>
+                                          <td className="py-4 px-6 text-xs text-sand-500 max-w-xs truncate" title={med.description}>
+                                            {med.shortDescription || med.description || '-'}
+                                          </td>
+                                          <td className="py-4 px-6">
+                                            <div className="flex items-center justify-center gap-3">
+                                              <button
+                                                onClick={() => openMedicineModal('edit', med)}
+                                                className="p-1.5 rounded-lg text-primary-600 hover:bg-primary-50 transition-colors cursor-pointer"
+                                                title="Edit"
+                                              >
+                                                <Edit size={16} />
+                                              </button>
+                                              <button
+                                                onClick={() => startDelete('medicine', med.id, med.englishName || med.teluguName)}
+                                                className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                                title="Delete"
+                                              >
+                                                <Trash2 size={16} />
+                                              </button>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
 
-                                  return filtered.map((med) => (
-                                    <tr key={med.id} className="border-b border-primary-50 hover:bg-sand-50/50">
-                                      <td className="py-4 px-6">
-                                        <div className="h-12 w-12 rounded-lg bg-sand-100 border border-primary-100 flex items-center justify-center overflow-hidden">
-                                          {med.imageUrl ? (
-                                            <img src={med.imageUrl} alt={med.englishName} className="h-full w-full object-cover" />
-                                          ) : (
-                                            <ImageIcon className="text-sand-400" size={18} />
-                                          )}
-                                        </div>
-                                      </td>
-                                      <td className="py-4 px-6 font-semibold text-primary-955">{med.englishName || '-'}</td>
-                                      <td className="py-4 px-6 text-sand-600 font-medium">{med.teluguName}</td>
-                                      <td className="py-4 px-6">
+                              {/* Mobile Compact Cards View */}
+                              <div className="grid grid-cols-1 gap-4 md:hidden">
+                                {filtered.map((med) => (
+                                  <div key={med.id} className="bg-white p-5 rounded-2xl border border-primary-100 shadow-xs flex flex-col justify-between space-y-4">
+                                    <div className="flex gap-4">
+                                      <div className="h-16 w-16 rounded-xl bg-sand-100 border border-primary-100 overflow-hidden flex items-center justify-center shrink-0">
+                                        {med.imageUrl ? (
+                                          <img src={med.imageUrl} alt={med.englishName || ''} className="h-full w-full object-cover" />
+                                        ) : (
+                                          <ImageIcon className="text-sand-400" size={20} />
+                                        )}
+                                      </div>
+                                      <div className="overflow-hidden space-y-1">
+                                        <h4 className="font-bold text-sm text-primary-955 truncate leading-snug">{med.englishName || '-'}</h4>
+                                        <p className="text-xs text-sand-500 font-medium truncate">{med.teluguName || '-'}</p>
                                         <div className="flex flex-wrap gap-1">
                                           {med.categories?.map(c => (
-                                            <span key={c.id} className="bg-primary-50 text-primary-800 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                            <span key={c.id} className="bg-primary-50 text-primary-800 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                                               {c.englishName}
                                             </span>
                                           ))}
                                         </div>
-                                      </td>
-                                      <td className="py-4 px-6 text-xs text-sand-500 font-semibold">{med.quantity || '-'}</td>
-                                      <td className="py-4 px-6 text-center">
-                                        <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold border ${
-                                          med.isActive && med.availability === 'AVAILABLE'
-                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                            : 'bg-sand-150 text-sand-600 border-sand-200'
-                                        }`}>
-                                          {med.isActive ? (med.availability === 'AVAILABLE' ? 'Active' : 'Out of Stock') : 'Inactive'}
-                                        </span>
-                                      </td>
-                                      <td className="py-4 px-6">
-                                        <div className="flex items-center justify-center gap-3">
-                                          <button
-                                            onClick={() => openMedicineModal('edit', med)}
-                                            className="p-1.5 rounded-lg text-primary-600 hover:bg-primary-50 transition-colors cursor-pointer"
-                                            title="Edit"
-                                          >
-                                            <Edit size={16} />
-                                          </button>
-                                          <button
-                                            onClick={() => startDelete('medicine', med.id, med.englishName || med.teluguName)}
-                                            className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                                            title="Delete"
-                                          >
-                                            <Trash2 size={16} />
-                                          </button>
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  ));
-                                })()}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="text-xs text-sand-600 line-clamp-2">
+                                      {med.shortDescription || med.description || '-'}
+                                    </div>
+                                    <div className="flex justify-between items-center pt-3 border-t border-primary-50">
+                                      <span className="font-bold text-accent-700 font-mono text-sm">
+                                        {med.discountPrice ? `₹${med.discountPrice}` : `₹${med.price}`}
+                                      </span>
+                                      <div className="flex items-center gap-2">
+                                        <button
+                                          onClick={() => openMedicineModal('edit', med)}
+                                          className="p-2 bg-primary-50 hover:bg-primary-100 text-primary-800 rounded-lg cursor-pointer transition-colors"
+                                          title="Edit"
+                                        >
+                                          <Edit size={16} />
+                                        </button>
+                                        <button
+                                          onClick={() => startDelete('medicine', med.id, med.englishName || med.teluguName)}
+                                          className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-800 rounded-lg cursor-pointer transition-colors"
+                                          title="Delete"
+                                        >
+                                          <Trash2 size={16} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
                     )}
 
@@ -2491,114 +2107,47 @@ export default function AdminDashboard({ onLogout }) {
 
             {/* Contact Details Management Tab */}
             {activeTab === 'contact' && (
-              <form onSubmit={handleSaveContact} className="space-y-6 bg-white p-6 sm:p-10 rounded-3xl border border-primary-100 shadow-xs">
+              <form onSubmit={handleSaveContact} className="space-y-6 bg-white p-6 sm:p-10 rounded-3xl border border-primary-100 shadow-xs max-w-2xl">
                 <div>
-                  <h1 className="font-display font-bold text-2xl text-primary-950">Contact & Address details</h1>
-                  <p className="text-sand-500 text-sm">Manage emails, local map embeds, operating schedules and socials</p>
+                  <h1 className="font-display font-bold text-2xl text-primary-955">Contact Information</h1>
+                  <p className="text-sand-500 text-sm">Manage business contact number, WhatsApp, and location details</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Business Legal Name</label>
-                      <input
-                        type="text"
-                        value={contactDetails.businessName || ''}
-                        onChange={(e) => setContactDetails({ ...contactDetails, businessName: e.target.value })}
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Address Location</label>
-                      <input
-                        type="text"
-                        value={contactDetails.address || ''}
-                        onChange={(e) => setContactDetails({ ...contactDetails, address: e.target.value })}
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Phone Helpline</label>
-                      <input
-                        type="text"
-                        value={contactDetails.phone || ''}
-                        onChange={(e) => setContactDetails({ ...contactDetails, phone: e.target.value })}
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">WhatsApp Number (For customer clicks)</label>
-                      <input
-                        type="text"
-                        value={contactDetails.whatsapp || ''}
-                        onChange={(e) => setContactDetails({ ...contactDetails, whatsapp: e.target.value })}
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Support Email</label>
-                      <input
-                        type="email"
-                        value={contactDetails.email || ''}
-                        onChange={(e) => setContactDetails({ ...contactDetails, email: e.target.value })}
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      />
-                    </div>
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-primary-900 block">Phone Number</label>
+                    <input
+                      type="text"
+                      value={contactDetails.phone || ''}
+                      onChange={(e) => setContactDetails({ ...contactDetails, phone: e.target.value })}
+                      placeholder="e.g. +91 91217 56114"
+                      className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                      required
+                    />
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Opening Hours Schedule</label>
-                      <input
-                        type="text"
-                        value={contactDetails.openingHours || ''}
-                        onChange={(e) => setContactDetails({ ...contactDetails, openingHours: e.target.value })}
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Google Maps Embed Link</label>
-                      <input
-                        type="text"
-                        value={contactDetails.googleMapsLink || ''}
-                        onChange={(e) => setContactDetails({ ...contactDetails, googleMapsLink: e.target.value })}
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Instagram Profile Link</label>
-                      <input
-                        type="text"
-                        value={contactDetails.instagramUrl || ''}
-                        onChange={(e) => setContactDetails({ ...contactDetails, instagramUrl: e.target.value })}
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Facebook Profile Link</label>
-                      <input
-                        type="text"
-                        value={contactDetails.facebookUrl || ''}
-                        onChange={(e) => setContactDetails({ ...contactDetails, facebookUrl: e.target.value })}
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-primary-900 block">Twitter Profile Link</label>
-                      <input
-                        type="text"
-                        value={contactDetails.twitterUrl || ''}
-                        onChange={(e) => setContactDetails({ ...contactDetails, twitterUrl: e.target.value })}
-                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-primary-900 block">WhatsApp Number</label>
+                    <input
+                      type="text"
+                      value={contactDetails.whatsapp || ''}
+                      onChange={(e) => setContactDetails({ ...contactDetails, whatsapp: e.target.value })}
+                      placeholder="e.g. 9121756114"
+                      className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-primary-900 block">Location (Address)</label>
+                    <input
+                      type="text"
+                      value={contactDetails.address || ''}
+                      onChange={(e) => setContactDetails({ ...contactDetails, address: e.target.value })}
+                      placeholder="e.g. Nandigama, Andhra Pradesh, India"
+                      className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                      required
+                    />
                   </div>
                 </div>
 
@@ -2609,7 +2158,7 @@ export default function AdminDashboard({ onLogout }) {
                     className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-6 py-3 rounded-xl cursor-pointer"
                   >
                     <Save size={18} />
-                    <span>Save Contact Details</span>
+                    <span>Save Changes</span>
                   </button>
                 </div>
               </form>

@@ -124,8 +124,8 @@ export default function About() {
   const [data, setData] = useState(DEFAULT_FALLBACK_DATA);
   const [contact, setContact] = useState({
     businessName: 'R.K. Ayurveda',
-    phone: '+91 6305029231',
-    whatsapp: '6305029231'
+    phone: '+91 91217 56114',
+    whatsapp: '9121756114'
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -241,7 +241,7 @@ export default function About() {
                   <div className="relative group">
                     <div className="absolute inset-0 bg-primary-900 rounded-3xl translate-x-3 translate-y-3 -z-10 opacity-10 group-hover:translate-x-1 group-hover:translate-y-1 transition-transform"></div>
                     <img
-                      src="/story.png"
+                      src={data.storyImageUrl || "/story.png"}
                       alt="R.K. Ayurveda Story Ingredients"
                       className="w-full max-w-md h-[400px] object-cover rounded-3xl shadow-md border-4 border-white"
                     />

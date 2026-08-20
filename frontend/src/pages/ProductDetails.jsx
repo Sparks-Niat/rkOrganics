@@ -41,7 +41,7 @@ export default function ProductDetails() {
   const navigate = useNavigate();
   const [medicine, setMedicine] = useState(null);
   const [whatsappSettings, setWhatsappSettings] = useState({
-    whatsappNumber: '6305029231',
+    whatsappNumber: '9121756114',
     defaultMessage: 'Hello, I would like to order {medicineName}. Price: {price}. Quantity: {quantity}.',
   });
   const [loading, setLoading] = useState(true);
@@ -97,7 +97,7 @@ export default function ProductDetails() {
 
   const handleWhatsAppOrder = () => {
     if (!medicine) return;
-    const number = whatsappSettings.whatsappNumber || '6305029231';
+    const number = whatsappSettings.whatsappNumber || '9121756114';
     const cleanedNumber = number.replace(/\D/g, '');
     const template = whatsappSettings.defaultMessage || 'Hello, I would like to order {medicineName}. Price: {price}. Quantity: {quantity}.';
     

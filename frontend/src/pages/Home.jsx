@@ -60,15 +60,15 @@ export default function Home() {
   });
 
   const [contact, setContact] = useState({
-    phone: '+91 6305029231',
-    whatsapp: '6305029231',
-    address: '123 Ayurvedic Lane, Heritage Town',
+    phone: '+91 91217 56114',
+    whatsapp: '9121756114',
+    address: 'Nandigama, Andhra Pradesh, India',
     openingHours: '9:00 AM - 6:00 PM (Mon - Sat)',
     googleMapsLink: '',
   });
 
   const [whatsappSettings, setWhatsappSettings] = useState({
-    whatsappNumber: '6305029231',
+    whatsappNumber: '9121756114',
     defaultMessage: 'Hello, I would like to order {medicineName}. Price: {price}. Quantity: {quantity}.',
   });
 
@@ -179,7 +179,7 @@ export default function Home() {
 
   const handleWhatsAppOrder = (e, medicine) => {
     e.stopPropagation(); // Stop navigation to detail page
-    const number = whatsappSettings.whatsappNumber || contact.whatsapp || '6305029231';
+    const number = whatsappSettings.whatsappNumber || contact.whatsapp || '9121756114';
     const cleanedNumber = number.replace(/\D/g, '');
     const template = whatsappSettings.defaultMessage || 'Hello, I would like to order {medicineName}. Price: {price}. Quantity: {quantity}.';
     

@@ -48,11 +48,11 @@ async function main() {
     data: {
       id: 1,
       businessName: 'R.K. Organics',
-      address: '123 Ayurvedic Lane, Heritage Town, India',
-      phone: '+91 6305029231',
-      whatsapp: '6305029231',
+      address: 'Nandigama, Andhra Pradesh, India',
+      phone: '+91 91217 56114',
+      whatsapp: '9121756114',
       email: 'info@rkayurveda.com',
-      googleMapsLink: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.8938950854447!2d80.20387667590823!3d12.978648114713175!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a525d8c6b7617b7%3A0xe54e6022e37905f0!2sChennai%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin',
+      googleMapsLink: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d30560.106889705174!2d80.26442657788484!3d16.77660233486337!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a35efb9c5123d47%3A0x6b7dbb8a4f0bb4e!2sNandigama%2C%20Andhra%20Pradesh%20521185!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin',
       openingHours: '9:00 AM - 6:00 PM (Mon - Sat)',
       instagramUrl: 'https://instagram.com',
       facebookUrl: 'https://facebook.com',
@@ -89,7 +89,7 @@ async function main() {
   await prisma.whatsAppSettings.create({
     data: {
       id: 1,
-      whatsappNumber: '6305029231',
+      whatsappNumber: '9121756114',
       defaultMessage: 'Hello, I would like to order {medicineName}. Price: {price}. Quantity: {quantity}.',
       businessName: 'R.K. Ayurveda',
       orderMessageFormat: 'Hello, I would like to order {medicineName}. Price: {price}. Quantity: {quantity}.',
