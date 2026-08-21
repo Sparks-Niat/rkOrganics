@@ -1167,6 +1167,7 @@ export default function AdminDashboard({ onLogout }) {
                         onChange={async (e) => {
                           const file = e.target.files[0];
                           if (!file) return;
+                          isUploadingRef.current = true;
                           setSaving(true);
                           try {
                             const data = await api.upload(file);
@@ -1176,6 +1177,7 @@ export default function AdminDashboard({ onLogout }) {
                             showToast('Upload failed', 'error');
                           } finally {
                             setSaving(false);
+                            isUploadingRef.current = false;
                           }
                         }}
                         className="hidden"

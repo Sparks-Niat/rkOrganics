@@ -1,6 +1,8 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -20,9 +22,6 @@ import benefitsRoutes from './routes/benefits.js';
 import testimonialsRoutes from './routes/testimonials.js';
 import promotionsRoutes from './routes/promotions.js';
 import navigationRoutes from './routes/navigation.js';
-
-// Load Environment Variables
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;

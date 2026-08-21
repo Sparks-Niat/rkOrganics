@@ -68,6 +68,14 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
     res.status(200).json({ imageUrl });
   } catch (error) {
     console.error('Error uploading image:', error);
+    // Ensure cleanup of uploaded file in case it was not cleaned up
+    try {
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+    } catch (err) {
+      console.error('Failed to clean up temp file:', err.message);
+    }
     res.status(500).json({ message: error.message || 'Image upload failed' });
   }
 });

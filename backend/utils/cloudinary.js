@@ -2,21 +2,47 @@ import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import path from 'path';
 
-// Check if Cloudinary configuration is provided
-const isCloudinaryConfigured = 
-  process.env.CLOUDINARY_CLOUD_NAME && 
-  process.env.CLOUDINARY_API_KEY && 
-  process.env.CLOUDINARY_API_SECRET;
+let isConfigured = false;
+let hasCloudinary = false;
 
-if (isCloudinaryConfigured) {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-  });
-  console.log('Cloudinary storage initialized.');
-} else {
-  console.log('Cloudinary credentials missing. Falling back to Local Storage for uploads.');
+function ensureCloudinaryConfigured() {
+  if (isConfigured) return hasCloudinary;
+
+  hasCloudinary = !!(
+    process.env.CLOUDINARY_CLOUD_NAME && 
+    process.env.CLOUDINARY_API_KEY && 
+    process.env.CLOUDINARY_API_SECRET
+  );
+
+  console.log('--- CLOUDINARY CONFIGURATION DIAGNOSTICS ---');
+  console.log('CLOUDINARY_CLOUD_NAME exists:', !!process.env.CLOUDINARY_CLOUD_NAME);
+  if (process.env.CLOUDINARY_CLOUD_NAME) {
+    console.log('CLOUDINARY_CLOUD_NAME value:', process.env.CLOUDINARY_CLOUD_NAME);
+  }
+  console.log('CLOUDINARY_API_KEY exists:', !!process.env.CLOUDINARY_API_KEY);
+  if (process.env.CLOUDINARY_API_KEY) {
+    console.log('CLOUDINARY_API_KEY length:', process.env.CLOUDINARY_API_KEY.length);
+    console.log('CLOUDINARY_API_KEY value:', process.env.CLOUDINARY_API_KEY);
+  }
+  console.log('CLOUDINARY_API_SECRET exists:', !!process.env.CLOUDINARY_API_SECRET);
+  if (process.env.CLOUDINARY_API_SECRET) {
+    console.log('CLOUDINARY_API_SECRET length:', process.env.CLOUDINARY_API_SECRET.length);
+  }
+  console.log('---------------------------------------------');
+
+  if (hasCloudinary) {
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+    console.log('Cloudinary storage initialized.');
+  } else {
+    console.log('Cloudinary credentials missing. Falling back to Local Storage for uploads.');
+  }
+
+  isConfigured = true;
+  return hasCloudinary;
 }
 
 /**
@@ -28,7 +54,8 @@ export async function uploadImage(localFilePath) {
   if (!localFilePath) return null;
 
   try {
-    if (isCloudinaryConfigured) {
+    const isCloudinaryActive = ensureCloudinaryConfigured();
+    if (isCloudinaryActive) {
       // Upload to Cloudinary
       const result = await cloudinary.uploader.upload(localFilePath, {
         folder: 'ayurvedic_organics',
@@ -69,7 +96,8 @@ export async function deleteImage(imageUrl) {
   if (!imageUrl) return;
 
   try {
-    if (isCloudinaryConfigured && imageUrl.includes('res.cloudinary.com')) {
+    const isCloudinaryActive = ensureCloudinaryConfigured();
+    if (isCloudinaryActive && imageUrl.includes('res.cloudinary.com')) {
       // Parse public_id from Cloudinary URL
       const parts = imageUrl.split('/image/upload/');
       if (parts.length > 1) {
