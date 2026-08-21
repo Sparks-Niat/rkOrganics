@@ -58,12 +58,12 @@ const renderParagraphs = (text, className = "text-sand-800 leading-relaxed text-
 
 const DEFAULT_FALLBACK_DATA = {
   isEnabled: true,
-  heading: 'Rooted in Nature. Inspired by Ayurveda.',
-  aboutIntro: 'RK Organics brings the timeless wisdom of Ayurveda together with carefully selected natural ingredients to provide authentic, trusted and thoughtfully prepared herbal remedies.',
-  ourStory: 'RK Organics is built on a simple belief — nature has always provided powerful ways to support everyday wellbeing. Inspired by traditional Ayurvedic knowledge, we are committed to bringing natural remedies closer to modern families while respecting the wisdom and practices passed down through generations.',
+  heading: 'Rooted in Nature. Inspired by Ayurveda. Guided by Tradition.',
+  aboutIntro: 'R.K. Organics brings the timeless wisdom of Ayurveda together with carefully selected natural ingredients to provide authentic, trusted, and thoughtfully prepared herbal remedies. We believe in holistic wellness that integrates traditional wisdom with modern standards of purity, offering a path to health that is aligned with the rhythms of nature.',
+  ourStory: 'R.K. Organics / R.K. Ayurveda was founded on a simple, unchanging belief: that nature holds the key to true, sustainable wellbeing. Inspired by traditional Ayurvedic texts and ancestral preparations, we started our journey to make authentic Ayurvedic healing accessible, transparent, and trustworthy.\n\nOur commitment lies in how we formulate our products. We partner with local farmers to source premium, organically grown botanicals. In our preparation facility, each herb is treated with respect and formulated following strict traditional practices. We reject chemical extracts, heavy metals, and synthetic additives, ensuring that every spoonful, oil, or capsule we make is pure, safe, and highly bio-available.\n\nThrough absolute transparency, quality sourcing, and dedicated customer care, we have built a community of wellness seekers who trust our formulations for their daily health needs. We are proud to keep the heritage of ancient Ayurveda alive, delivering wellness from our family to yours.',
   storyImageUrl: '/story.png',
-  mission: 'Our mission is to offer thoughtfully prepared Ayurvedic remedies using quality ingredients, responsible practices and a commitment to authenticity, transparency and customer trust.',
-  vision: 'To become a trusted name in natural and Ayurvedic wellness by making authentic herbal remedies accessible to families while preserving the timeless wisdom of nature.',
+  mission: 'Our mission is to offer thoughtfully prepared Ayurvedic remedies using quality ingredients, responsible practices, and a steadfast commitment to authenticity, transparency, and customer trust. We aim to empower individuals to take charge of their health naturally and safely through effective, time-tested formulations.',
+  vision: 'To be a globally trusted name in natural and Ayurvedic wellness, recognized for our uncompromising commitment to ingredient purity, authentic formulations, and the long-term well-being and satisfaction of our customers.',
   philosophyIntro: 'Our approach is guided by timeless natural wisdom.',
   qualityIntro: 'We ensure transparency and care in every product.',
   whyChooseUsIntro: 'Why customers trust R.K. Ayurveda.',

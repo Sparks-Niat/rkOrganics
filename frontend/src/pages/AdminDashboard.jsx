@@ -59,7 +59,10 @@ export default function AdminDashboard({ onLogout }) {
   const [testimonialModal, setTestimonialModal] = useState({ open: false, mode: 'add', data: null });
   const [promotionModal, setPromotionModal] = useState({ open: false, mode: 'add', data: null });
   const [navigationItemModal, setNavigationItemModal] = useState({ open: false, mode: 'add', data: null });
+  const [galleryModal, setGalleryModal] = useState({ open: false, mode: 'add', data: null });
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, type: '', id: null, name: '' });
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [galleryForm, setGalleryForm] = useState({ imageUrl: '', title: '', description: '', displayOrder: 0, isEnabled: true });
 
   // Form states
   const [medicineForm, setMedicineForm] = useState({
@@ -120,6 +123,7 @@ export default function AdminDashboard({ onLogout }) {
       setCategories(cats || []);
       setSiteSettings(settings || {});
       setAboutContent(about || {});
+      setGalleryImages(about?.galleryImages || []);
       setContactDetails(contact || {});
       setWhatsappSettings(wa || {});
       setBenefits(benData || []);
@@ -223,6 +227,8 @@ export default function AdminDashboard({ onLogout }) {
         setTestimonialForm(prev => ({ ...prev, imageUrl: data.imageUrl }));
       } else if (type === 'promotion') {
         setPromotionForm(prev => ({ ...prev, imageUrl: data.imageUrl }));
+      } else if (type === 'gallery') {
+        setGalleryForm(prev => ({ ...prev, imageUrl: data.imageUrl }));
       }
     } catch (err) {
       console.error(err);
@@ -497,6 +503,9 @@ export default function AdminDashboard({ onLogout }) {
       } else if (deleteConfirm.type === 'navigation') {
         await api.navigation.delete(deleteConfirm.id);
         showToast('Navigation link deleted successfully');
+      } else if (deleteConfirm.type === 'gallery') {
+        await api.about.gallery.delete(deleteConfirm.id);
+        showToast('Gallery photo deleted successfully');
       }
       setDeleteConfirm({ open: false, type: '', id: null, name: '' });
       loadData();
@@ -551,6 +560,59 @@ export default function AdminDashboard({ onLogout }) {
       loadData();
     } catch (err) {
       showToast(err.message || 'Error saving category', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveAboutContent = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await api.about.update(aboutContent);
+      showToast('About Us content updated successfully');
+      loadData();
+    } catch (err) {
+      showToast(err.message || 'Error updating About Us content', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openGalleryModal = (mode, img = null) => {
+    if (mode === 'add') {
+      setGalleryForm({ imageUrl: '', title: '', description: '', displayOrder: galleryImages.length, isEnabled: true });
+    } else {
+      setGalleryForm({
+        imageUrl: img.imageUrl || '',
+        title: img.title || '',
+        description: img.description || '',
+        displayOrder: img.displayOrder,
+        isEnabled: img.isEnabled
+      });
+    }
+    setGalleryModal({ open: true, mode, data: img });
+  };
+
+  const handleSaveGallery = async (e) => {
+    e.preventDefault();
+    if (!galleryForm.imageUrl) {
+      showToast('Image upload is required', 'error');
+      return;
+    }
+    setSaving(true);
+    try {
+      if (galleryModal.mode === 'add') {
+        await api.about.gallery.create(galleryForm);
+        showToast('Gallery photo added successfully');
+      } else {
+        await api.about.gallery.update(galleryModal.data.id, galleryForm);
+        showToast('Gallery photo updated successfully');
+      }
+      setGalleryModal({ open: false, mode: 'add', data: null });
+      loadData();
+    } catch (err) {
+      showToast(err.message || 'Error saving gallery photo', 'error');
     } finally {
       setSaving(false);
     }
@@ -767,35 +829,70 @@ export default function AdminDashboard({ onLogout }) {
           </div>
 
           {/* Navigation links */}
-          <nav className="space-y-1.5 px-3">
-            {[
-              { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
-              { id: 'medicines', label: '📦 Medicine Management', icon: Package },
-              { id: 'website_images', label: '🖼 Website Images', icon: ImageIcon },
-              { id: 'homepage', label: '🏠 Home Page', icon: HomeIcon },
-              { id: 'contact', label: '📞 Contact Information', icon: Phone },
-              { id: 'logo', label: '🔰 Logo', icon: Award }
-            ].map(tab => {
-              const Icon = tab.icon;
-              const active = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                    setIsSidebarOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
-                    active 
-                      ? 'bg-primary-900 text-white font-semibold border-l-4 border-accent-500' 
-                      : 'text-primary-300 hover:bg-primary-900 hover:text-white'
-                  }`}
-                >
-                  <Icon size={18} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
+          <nav className="space-y-4 px-3">
+            <div>
+              <span className="px-4 text-[10px] font-bold text-primary-400 uppercase tracking-widest block mb-2">Medicine Management</span>
+              <div className="space-y-1">
+                {[
+                  { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
+                  { id: 'medicines', label: '📦 Product Catalog', icon: Package }
+                ].map(tab => {
+                  const Icon = tab.icon;
+                  const active = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setIsSidebarOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                        active 
+                          ? 'bg-primary-900 text-white font-semibold border-l-4 border-accent-500' 
+                          : 'text-primary-300 hover:bg-primary-900 hover:text-white'
+                      }`}
+                    >
+                      <Icon size={18} />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <span className="px-4 text-[10px] font-bold text-primary-400 uppercase tracking-widest block mb-2">Website Content</span>
+              <div className="space-y-1">
+                {[
+                  { id: 'homepage', label: '🏠 Home Page Text', icon: HomeIcon },
+                  { id: 'website_images', label: '🖼 Home Hero Image', icon: ImageIcon },
+                  { id: 'about_us', label: 'ℹ About Us Content', icon: FileText },
+                  { id: 'about_gallery', label: '📷 Inside R.K. Images', icon: ImageIcon },
+                  { id: 'contact', label: '📞 Contact Details', icon: Phone },
+                  { id: 'logo', label: '🔰 Logo & Branding', icon: Award }
+                ].map(tab => {
+                  const Icon = tab.icon;
+                  const active = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setIsSidebarOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                        active 
+                          ? 'bg-primary-900 text-white font-semibold border-l-4 border-accent-500' 
+                          : 'text-primary-300 hover:bg-primary-900 hover:text-white'
+                      }`}
+                    >
+                      <Icon size={18} />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </nav>
         </div>
 
@@ -2124,6 +2221,164 @@ export default function AdminDashboard({ onLogout }) {
               </div>
             )}
 
+            {/* About Us Content Management Tab */}
+            {activeTab === 'about_us' && (
+              <form onSubmit={handleSaveAboutContent} className="space-y-6 bg-white p-6 sm:p-10 rounded-3xl border border-primary-100 shadow-xs max-w-4xl">
+                <div>
+                  <h1 className="font-display font-bold text-2xl text-primary-955">About Us Content</h1>
+                  <p className="text-sand-500 text-sm">Update the professional text content displayed on the customer About Us page</p>
+                </div>
+
+                <div className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-primary-900 block">Heading</label>
+                    <input
+                      type="text"
+                      value={aboutContent.heading || ''}
+                      onChange={(e) => setAboutContent({ ...aboutContent, heading: e.target.value })}
+                      className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm font-semibold"
+                      placeholder="About Our Organisation"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-primary-900 block">Introductory Text</label>
+                    <textarea
+                      value={aboutContent.aboutIntro || ''}
+                      onChange={(e) => setAboutContent({ ...aboutContent, aboutIntro: e.target.value })}
+                      className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm min-h-[80px]"
+                      placeholder="Dedicated to bringing authentic health..."
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-primary-900 block">Our Story (Multi-paragraph)</label>
+                    <textarea
+                      value={aboutContent.ourStory || ''}
+                      onChange={(e) => setAboutContent({ ...aboutContent, ourStory: e.target.value })}
+                      className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm min-h-[200px]"
+                      placeholder="Explain who R.K. Ayurveda is..."
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-primary-900 block">Our Mission</label>
+                      <textarea
+                        value={aboutContent.mission || ''}
+                        onChange={(e) => setAboutContent({ ...aboutContent, mission: e.target.value })}
+                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm min-h-[120px]"
+                        placeholder="Our mission is to..."
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-primary-900 block">Our Vision</label>
+                      <textarea
+                        value={aboutContent.vision || ''}
+                        onChange={(e) => setAboutContent({ ...aboutContent, vision: e.target.value })}
+                        className="w-full p-3 bg-sand-50 border border-primary-100 rounded-xl text-sm min-h-[120px]"
+                        placeholder="Our vision is to..."
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-primary-50 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-6 py-3 rounded-xl cursor-pointer"
+                  >
+                    <Save size={18} />
+                    <span>Save Content Changes</span>
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Inside R.K. Ayurveda Gallery Images Tab */}
+            {activeTab === 'about_gallery' && (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-white p-6 rounded-3xl border border-primary-100 shadow-xs">
+                  <div>
+                    <h1 className="font-display font-bold text-2xl text-primary-955">Inside R.K. Ayurveda</h1>
+                    <p className="text-sand-500 text-sm">Manage the photos displayed in the "Inside R.K. Ayurveda" section of the About Us page</p>
+                  </div>
+                  <button
+                    onClick={() => openGalleryModal('add')}
+                    className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-5 py-2.5 rounded-xl shadow-xs transition-colors cursor-pointer text-sm font-bold"
+                  >
+                    <Plus size={16} />
+                    <span>Add Photo</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {galleryImages.map((img) => (
+                    <div key={img.id} className="bg-white rounded-2xl border border-primary-100 shadow-xs overflow-hidden flex flex-col justify-between h-full group hover:shadow-md transition-shadow">
+                      <div className="h-48 w-full bg-sand-50 border-b border-primary-50 relative flex items-center justify-center overflow-hidden">
+                        {img.imageUrl ? (
+                          <img src={img.imageUrl} alt={img.title || "Gallery image"} className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-300" />
+                        ) : (
+                          <ImageIcon className="text-sand-400" size={32} />
+                        )}
+                      </div>
+                      
+                      <div className="p-5 flex-grow space-y-2">
+                        <h3 className="font-display font-bold text-primary-955 text-base truncate">
+                          {img.title || 'Untitled Image'}
+                        </h3>
+                        <p className="text-sand-500 text-xs line-clamp-2 min-h-[32px]">
+                          {img.description || 'No description provided.'}
+                        </p>
+                        <div className="flex justify-between items-center pt-2">
+                          <span className="text-[10px] font-bold text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">
+                            Order: {img.displayOrder}
+                          </span>
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                            img.isEnabled
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                              : 'bg-sand-150 text-sand-600 border-sand-200'
+                          }`}>
+                            {img.isEnabled ? 'Enabled' : 'Disabled'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 border-t border-primary-50 flex items-center justify-end gap-2 bg-sand-50/50">
+                        <button
+                          onClick={() => openGalleryModal('edit', img)}
+                          className="inline-flex items-center gap-1 bg-primary-50 hover:bg-primary-100 text-primary-800 text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
+                        >
+                          <Edit size={12} />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => startDelete('gallery', img.id, img.title || 'Gallery image')}
+                          className="inline-flex items-center gap-1 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
+                        >
+                          <Trash2 size={12} />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {galleryImages.length === 0 && (
+                    <div className="col-span-full text-center py-16 text-sand-400 font-medium bg-white rounded-3xl border border-dashed border-primary-200">
+                      No gallery images uploaded yet. Click "Add Photo" to populate the section.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Contact Details Management Tab */}
             {activeTab === 'contact' && (
               <form onSubmit={handleSaveContact} className="space-y-6 bg-white p-6 sm:p-10 rounded-3xl border border-primary-100 shadow-xs max-w-2xl">
@@ -2740,6 +2995,125 @@ export default function AdminDashboard({ onLogout }) {
                   <span>{categoryModal.mode === 'add' ? 'Create' : 'Save'}</span>
                 </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* GALLERY IMAGE MODAL FORM (ADD/EDIT) */}
+      {galleryModal.open && (
+        <div className="fixed inset-0 bg-primary-950/65 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
+          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden border border-primary-100 shadow-xl max-h-[95vh] flex flex-col">
+            
+            <div className="bg-primary-900 text-white p-5 flex justify-between items-center">
+              <h3 className="font-display font-bold text-lg">
+                {galleryModal.mode === 'add' ? 'Add Photo to Gallery' : 'Edit Gallery Photo'}
+              </h3>
+              <button 
+                onClick={() => setGalleryModal({ open: false, mode: 'add', data: null })}
+                className="text-primary-300 hover:text-white transition-colors cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveGallery} className="p-6 space-y-4 overflow-y-auto flex-grow">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-primary-900 block">Gallery Image</label>
+                <div className="flex items-center gap-4">
+                  <div className="h-16 w-16 rounded-xl bg-sand-100 border border-primary-100 flex items-center justify-center overflow-hidden shrink-0">
+                    {galleryForm.imageUrl ? (
+                      <img src={galleryForm.imageUrl} alt="Gallery preview" className="h-full w-full object-cover" />
+                    ) : (
+                      <ImageIcon className="text-sand-400" size={24} />
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e.target.files[0], 'gallery')}
+                    className="hidden"
+                    id="gallery-photo-upload"
+                  />
+                  <label htmlFor="gallery-photo-upload" className="inline-flex items-center gap-2 bg-primary-50 border border-primary-200 hover:bg-primary-100 text-primary-800 text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer">
+                    <Upload size={12} />
+                    <span>{galleryForm.imageUrl ? 'Replace Image' : 'Upload Image'}</span>
+                  </label>
+                  {galleryForm.imageUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setGalleryForm({ ...galleryForm, imageUrl: '' })}
+                      className="text-xs font-semibold text-rose-600 hover:underline cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-primary-900">Title / Label (Optional)</label>
+                <input
+                  type="text"
+                  value={galleryForm.title}
+                  onChange={(e) => setGalleryForm({ ...galleryForm, title: e.target.value })}
+                  placeholder="e.g. Traditional Preparation"
+                  className="w-full p-2.5 bg-sand-50 border border-primary-100 rounded-xl text-sm"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-primary-900">Description (Optional)</label>
+                <textarea
+                  value={galleryForm.description}
+                  onChange={(e) => setGalleryForm({ ...galleryForm, description: e.target.value })}
+                  placeholder="Provide a brief context or description..."
+                  className="w-full p-2.5 bg-sand-50 border border-primary-100 rounded-xl text-sm min-h-[80px]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-primary-900">Display Order</label>
+                  <input
+                    type="number"
+                    value={galleryForm.displayOrder}
+                    onChange={(e) => setGalleryForm({ ...galleryForm, displayOrder: parseInt(e.target.value) || 0 })}
+                    className="w-full p-2.5 bg-sand-50 border border-primary-100 rounded-xl text-sm font-mono"
+                    min="0"
+                  />
+                </div>
+                <div className="flex items-center justify-end pt-5">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={galleryForm.isEnabled}
+                      onChange={(e) => setGalleryForm({ ...galleryForm, isEnabled: e.target.checked })}
+                      className="rounded border-primary-200 text-primary-600 focus:ring-primary-500 font-bold"
+                    />
+                    <span className="text-xs font-bold text-primary-900">Enabled</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-primary-50 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setGalleryModal({ open: false, mode: 'add', data: null })}
+                  className="px-4 py-2 rounded-xl border border-primary-100 hover:bg-sand-50 text-sand-700 text-sm font-medium transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-medium px-5 py-2 rounded-xl text-sm cursor-pointer"
+                >
+                  <Save size={14} />
+                  <span>{galleryModal.mode === 'add' ? 'Add Photo' : 'Save Changes'}</span>
+                </button>
+              </div>
+
             </form>
           </div>
         </div>

@@ -30,11 +30,11 @@ router.get('/', async (req, res) => {
         data: {
           id: 1,
           heading: 'About R.K. Ayurveda',
-          aboutIntro: 'Dedicated to bringing authentic Ayurvedic health and wellness to your home.',
-          ourStory: 'Founded with a commitment to pure wellness, R.K. Ayurveda continues the legacy of traditional Ayurvedic healing.',
+          aboutIntro: 'Dedicated to bringing authentic Ayurvedic health and wellness to your home. At R.K. Organics, we combine time-tested Ayurvedic wisdom with carefully selected organic herbs to formulate pure remedies that support your body\'s natural balance.',
+          ourStory: 'R.K. Organics / R.K. Ayurveda was founded on a simple, unchanging belief: that nature holds the key to true, sustainable wellbeing. Inspired by traditional Ayurvedic texts and ancestral preparations, we started our journey to make authentic Ayurvedic healing accessible, transparent, and trustworthy.\n\nOur commitment lies in how we formulate our products. We partner with local farmers to source premium, organically grown botanicals. In our preparation facility, each herb is treated with respect and formulated following strict traditional practices. We reject chemical extracts, heavy metals, and synthetic additives, ensuring that every spoonful, oil, or capsule we make is pure, safe, and highly bio-available.\n\nThrough absolute transparency, quality sourcing, and dedicated customer care, we have built a community of wellness seekers who trust our formulations for their daily health needs. We are proud to keep the heritage of ancient Ayurveda alive, delivering wellness from our family to yours.',
           storyImageUrl: 'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?auto=format&fit=crop&w=800&q=80',
-          mission: 'To make pure, authentic, and organic Ayurvedic remedies accessible to everyone.',
-          vision: 'To be a globally trusted name in Ayurveda, recognized for our commitment to quality.',
+          mission: 'Our mission is to offer thoughtfully prepared Ayurvedic remedies using quality ingredients, responsible practices, and a steadfast commitment to authenticity, transparency, and customer trust. We aim to empower individuals to take charge of their health naturally and safely through effective, time-tested formulations.',
+          vision: 'To be a globally trusted name in natural and Ayurvedic wellness, recognized for our uncompromising commitment to ingredient purity, authentic formulations, and the long-term well-being and satisfaction of our customers.',
           philosophyIntro: 'Our approach is guided by timeless natural wisdom.',
           qualityIntro: 'We ensure transparency and care in every product.',
           whyChooseUsIntro: 'Why customers trust R.K. Ayurveda.',
@@ -511,8 +511,17 @@ router.put('/gallery/:id', protect, async (req, res) => {
   const { id } = req.params;
   const { imageUrl, title, description, displayOrder, isEnabled } = req.body;
   try {
+    const galleryId = parseInt(id, 10);
+    const existingImage = await prisma.aboutGalleryImage.findUnique({
+      where: { id: galleryId }
+    });
+
+    if (!existingImage) {
+      return res.status(404).json({ message: 'Gallery item not found' });
+    }
+
     const item = await prisma.aboutGalleryImage.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: galleryId },
       data: {
         imageUrl,
         title,
@@ -521,6 +530,11 @@ router.put('/gallery/:id', protect, async (req, res) => {
         isEnabled: isEnabled !== undefined ? !!isEnabled : undefined
       }
     });
+
+    if (imageUrl !== undefined && existingImage.imageUrl && existingImage.imageUrl !== imageUrl) {
+      await deleteImage(existingImage.imageUrl);
+    }
+
     req.app.get('io')?.emit('website:data-updated', { type: 'about' });
     res.json(item);
   } catch (error) {
@@ -531,9 +545,20 @@ router.put('/gallery/:id', protect, async (req, res) => {
 router.delete('/gallery/:id', protect, async (req, res) => {
   const { id } = req.params;
   try {
-    await prisma.aboutGalleryImage.delete({
-      where: { id: parseInt(id, 10) }
+    const galleryId = parseInt(id, 10);
+    const existingImage = await prisma.aboutGalleryImage.findUnique({
+      where: { id: galleryId }
     });
+
+    if (existingImage) {
+      await prisma.aboutGalleryImage.delete({
+        where: { id: galleryId }
+      });
+      if (existingImage.imageUrl) {
+        await deleteImage(existingImage.imageUrl);
+      }
+    }
+
     req.app.get('io')?.emit('website:data-updated', { type: 'about' });
     res.json({ message: 'Item deleted successfully' });
   } catch (error) {

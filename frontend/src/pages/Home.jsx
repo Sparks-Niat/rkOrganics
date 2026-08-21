@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Phone, ArrowRight, CheckCircle2, ShieldCheck, Heart, MapPin, Star, Sparkles } from 'lucide-react';
+import { Phone, ArrowRight, CheckCircle2, ShieldCheck, Heart, MapPin, Star, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { api } from '../utils/api';
 import { useSocket } from '../context/SocketContext';
 
@@ -73,6 +73,7 @@ export default function Home() {
   });
 
   const [categories, setCategories] = useState([]);
+  const [currentCatIndex, setCurrentCatIndex] = useState(0);
   const [featuredMedicines, setFeaturedMedicines] = useState([]);
   const [benefits, setBenefits] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
@@ -176,6 +177,27 @@ export default function Home() {
       window.removeEventListener('socket_reconnected', handleReconnect);
     };
   }, [socket]);
+
+  // Auto-scroll every 5 seconds for Medicine Categories Carousel
+  useEffect(() => {
+    if (categories.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentCatIndex((prev) => (prev + 1) % categories.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [categories.length, currentCatIndex]);
+
+  const handlePrevCategory = (e) => {
+    e.preventDefault();
+    if (categories.length <= 1) return;
+    setCurrentCatIndex((prev) => (prev - 1 + categories.length) % categories.length);
+  };
+
+  const handleNextCategory = (e) => {
+    e.preventDefault();
+    if (categories.length <= 1) return;
+    setCurrentCatIndex((prev) => (prev + 1) % categories.length);
+  };
 
   const handleWhatsAppOrder = (e, medicine) => {
     e.stopPropagation(); // Stop navigation to detail page
@@ -332,53 +354,78 @@ export default function Home() {
               <p className="text-sand-500 font-medium">No categories available at the moment.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-              {categories.map((category) => {
+            <div className="relative max-w-sm mx-auto w-full px-4 sm:px-0">
+              {(() => {
+                const category = categories[currentCatIndex];
+                if (!category) return null;
                 const count = category._count?.medicines || 0;
                 const slug = getCategorySlug(category);
+                
                 return (
-                  <Link
-                    key={category.id}
-                    to={`/medicines/${slug}`}
-                    className="bg-white rounded-3xl overflow-hidden border border-primary-100/50 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col h-full group hover:-translate-y-1"
-                  >
-                    <div className="h-48 overflow-hidden relative bg-primary-50">
-                      {category.imageUrl ? (
-                        <img
-                          src={category.imageUrl}
-                          alt={category.englishName}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-primary-350 bg-primary-50">
-                          <Sparkles size={48} className="stroke-1" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60"></div>
-                      <span className="absolute bottom-4 left-4 bg-primary-950/90 backdrop-blur-xs text-accent-400 text-xs px-3 py-1.5 rounded-full font-bold shadow-xs border border-primary-800">
-                        {count} {count === 1 ? 'Medicine' : 'Medicines'}
-                      </span>
-                    </div>
-
-                    <div className="p-6 flex flex-col flex-grow justify-between space-y-4">
-                      <div className="space-y-1.5">
-                        <h3 className="font-display font-bold text-lg text-primary-955 group-hover:text-primary-800 transition-colors">
-                          {category.englishName}
-                        </h3>
-                        {category.teluguName && (
-                          <p className="text-primary-750 text-xs font-semibold leading-relaxed">
-                            {category.teluguName}
-                          </p>
+                  <div className="space-y-6">
+                    <Link
+                      to={`/medicines/${slug}`}
+                      className="bg-white rounded-3xl overflow-hidden border border-primary-100/50 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col group hover:-translate-y-1 w-full mx-auto animate-in fade-in duration-200"
+                    >
+                      <div className="h-64 overflow-hidden relative bg-primary-50">
+                        {category.imageUrl ? (
+                          <img
+                            src={category.imageUrl}
+                            alt={category.englishName}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-primary-350 bg-primary-50">
+                            <Sparkles size={48} className="stroke-1" />
+                          </div>
                         )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60"></div>
+                        <span className="absolute bottom-4 left-4 bg-primary-950/90 backdrop-blur-xs text-accent-400 text-xs px-3 py-1.5 rounded-full font-bold shadow-xs border border-primary-800">
+                          {count} {count === 1 ? 'Medicine' : 'Medicines'}
+                        </span>
                       </div>
-                      <div className="flex items-center text-accent-600 font-bold text-sm pt-2 group-hover:text-accent-700 transition-colors">
-                        <span>View Medicines</span>
-                        <ArrowRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
+
+                      <div className="p-6 flex flex-col justify-between space-y-4 text-center">
+                        <div className="space-y-1.5">
+                          <h3 className="font-display font-bold text-xl text-primary-955 group-hover:text-primary-800 transition-colors">
+                            {category.englishName}
+                          </h3>
+                          {category.teluguName && (
+                            <p className="text-primary-750 text-sm font-semibold leading-relaxed">
+                              {category.teluguName}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-center text-accent-600 font-bold text-sm pt-2 group-hover:text-accent-700 transition-colors">
+                          <span>View Medicines</span>
+                          <ArrowRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
+                        </div>
                       </div>
+                    </Link>
+
+                    {/* Navigation Buttons and Indicators */}
+                    <div className="flex items-center justify-center gap-6">
+                      <button
+                        onClick={handlePrevCategory}
+                        className="p-3.5 rounded-full bg-white hover:bg-primary-50 text-primary-800 hover:text-primary-950 transition-all border border-primary-100 shadow-xs hover:shadow-sm cursor-pointer flex items-center justify-center focus:outline-hidden select-none active:scale-95"
+                        title="Previous Category"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      <span className="text-sand-500 font-mono text-sm font-bold bg-sand-50/50 border border-primary-100/30 px-3.5 py-1.5 rounded-full shadow-2xs">
+                        {currentCatIndex + 1} / {categories.length}
+                      </span>
+                      <button
+                        onClick={handleNextCategory}
+                        className="p-3.5 rounded-full bg-white hover:bg-primary-50 text-primary-800 hover:text-primary-950 transition-all border border-primary-100 shadow-xs hover:shadow-sm cursor-pointer flex items-center justify-center focus:outline-hidden select-none active:scale-95"
+                        title="Next Category"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
                     </div>
-                  </Link>
+                  </div>
                 );
-              })}
+              })()}
             </div>
           )}
         </div>
