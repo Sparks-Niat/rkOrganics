@@ -54,18 +54,6 @@ const upload = multer({
   fileFilter: fileFilter,
 });
 
-// @desc    Debug environment variables
-// @route   GET /api/upload/debug-env
-// @access  Public (temporary)
-router.get('/debug-env', (req, res) => {
-  res.json({
-    CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
-    CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
-    CLOUDINARY_API_SECRET_exists: !!process.env.CLOUDINARY_API_SECRET,
-    CLOUDINARY_API_SECRET_length: process.env.CLOUDINARY_API_SECRET?.length
-  });
-});
-
 // @desc    Upload an image
 // @route   POST /api/upload
 // @access  Private
