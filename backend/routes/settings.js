@@ -1,6 +1,7 @@
 import express from 'express';
 import prisma from '../utils/db.js';
 import { protect } from '../middleware/auth.js';
+import { deleteImage } from '../utils/cloudinary.js';
 
 const router = express.Router();
 
@@ -44,6 +45,10 @@ router.put('/', protect, async (req, res) => {
 
   try {
     let settings = await prisma.siteSettings.findFirst();
+    const oldLogoUrl = settings?.logoUrl;
+    const oldFaviconUrl = settings?.faviconUrl;
+    const oldHeroImageUrl = settings?.heroImageUrl;
+
     const data = {
       businessName,
       logoUrl,
@@ -63,6 +68,17 @@ router.put('/', protect, async (req, res) => {
         where: { id: settings.id },
         data,
       });
+
+      // Cleanup replaced images
+      if (logoUrl !== undefined && oldLogoUrl && oldLogoUrl !== logoUrl) {
+        await deleteImage(oldLogoUrl);
+      }
+      if (faviconUrl !== undefined && oldFaviconUrl && oldFaviconUrl !== faviconUrl) {
+        await deleteImage(oldFaviconUrl);
+      }
+      if (heroImageUrl !== undefined && oldHeroImageUrl && oldHeroImageUrl !== heroImageUrl) {
+        await deleteImage(oldHeroImageUrl);
+      }
     } else {
       settings = await prisma.siteSettings.create({
         data: {

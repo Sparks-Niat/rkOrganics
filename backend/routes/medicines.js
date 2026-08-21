@@ -1,6 +1,7 @@
 import express from 'express';
 import prisma from '../utils/db.js';
 import { protect } from '../middleware/auth.js';
+import { deleteImage } from '../utils/cloudinary.js';
 
 const router = express.Router();
 
@@ -256,6 +257,8 @@ router.put('/:id', protect, async (req, res) => {
       };
     }
 
+    const oldImageUrl = existingMedicine.imageUrl;
+
     const medicine = await prisma.medicine.update({
       where: { id: medId },
       data: updateData,
@@ -263,6 +266,10 @@ router.put('/:id', protect, async (req, res) => {
         categories: true,
       },
     });
+
+    if (imageUrl !== undefined && oldImageUrl && oldImageUrl !== imageUrl) {
+      await deleteImage(oldImageUrl);
+    }
 
     req.app.get('io')?.emit('website:data-updated', { type: 'medicines' });
     res.json(medicine);
@@ -295,6 +302,10 @@ router.delete('/:id', protect, async (req, res) => {
     await prisma.medicine.delete({
       where: { id: medId },
     });
+
+    if (existingMedicine.imageUrl) {
+      await deleteImage(existingMedicine.imageUrl);
+    }
 
     req.app.get('io')?.emit('website:data-updated', { type: 'medicines' });
     res.json({ message: 'Medicine deleted successfully' });

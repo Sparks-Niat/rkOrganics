@@ -1,6 +1,7 @@
 import express from 'express';
 import prisma from '../utils/db.js';
 import { protect } from '../middleware/auth.js';
+import { deleteImage } from '../utils/cloudinary.js';
 
 const router = express.Router();
 
@@ -182,6 +183,8 @@ router.put('/:id', protect, async (req, res) => {
 
     const order = displayOrder !== undefined ? parseInt(displayOrder) : existingCategory.displayOrder;
 
+    const oldImageUrl = existingCategory.imageUrl;
+
     const category = await prisma.category.update({
       where: { id: categoryId },
       data: {
@@ -196,6 +199,10 @@ router.put('/:id', protect, async (req, res) => {
         isEnabled: isEnabled !== undefined ? isEnabled : existingCategory.isEnabled,
       },
     });
+
+    if (imageUrl !== undefined && oldImageUrl && oldImageUrl !== imageUrl) {
+      await deleteImage(oldImageUrl);
+    }
 
     req.app.get('io')?.emit('website:data-updated', { type: 'categories' });
     res.json(category);
@@ -237,6 +244,10 @@ router.delete('/:id', protect, async (req, res) => {
     await prisma.category.delete({
       where: { id: categoryId },
     });
+
+    if (existingCategory.imageUrl) {
+      await deleteImage(existingCategory.imageUrl);
+    }
 
     req.app.get('io')?.emit('website:data-updated', { type: 'categories' });
     res.json({ message: 'Category deleted successfully' });

@@ -47,6 +47,8 @@ export default function AdminDashboard({ onLogout }) {
   const [loading, setLoading] = useState(true);
   const [dataError, setDataError] = useState(null);
   const [saving, setSaving] = useState(false);
+  const isUploadingRef = React.useRef(false);
+  const latestLoadIdRef = React.useRef(0);
 
   // Form Modals / Edit states
   const [medicineModal, setMedicineModal] = useState({ open: false, mode: 'add', data: null });
@@ -87,6 +89,7 @@ export default function AdminDashboard({ onLogout }) {
 
   // Load dashboard data
   const loadData = async () => {
+    const loadId = ++latestLoadIdRef.current;
     setLoading(true);
     setDataError(null);
     try {
@@ -102,6 +105,16 @@ export default function AdminDashboard({ onLogout }) {
         api.promotions.getAll(),
         api.navigation.getAll()
       ]);
+
+      if (loadId !== latestLoadIdRef.current) {
+        console.log('Skipping loadData state update because a newer load request is active.');
+        return;
+      }
+
+      if (isUploadingRef.current) {
+        console.log('Skipping loadData state update because upload/save is in progress.');
+        return;
+      }
 
       setMedicines(meds || []);
       setCategories(cats || []);
@@ -129,11 +142,14 @@ export default function AdminDashboard({ onLogout }) {
         totalBenefits: totalBens
       });
     } catch (err) {
+      if (loadId !== latestLoadIdRef.current) return;
       console.error(err);
       setDataError(err.message || 'Error loading dashboard data');
       showToast('Error loading dashboard data', 'error');
     } finally {
-      setLoading(false);
+      if (loadId === latestLoadIdRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -181,9 +197,9 @@ export default function AdminDashboard({ onLogout }) {
     if (onLogout) onLogout();
   };
 
-  // Image Upload Handler
   const handleImageUpload = async (file, type) => {
     if (!file) return;
+    isUploadingRef.current = true;
     setSaving(true);
     try {
       const data = await api.upload(file);
@@ -213,6 +229,7 @@ export default function AdminDashboard({ onLogout }) {
       showToast(err.message || 'Image upload failed', 'error');
     } finally {
       setSaving(false);
+      isUploadingRef.current = false;
     }
   };
 
@@ -2477,8 +2494,17 @@ export default function AdminDashboard({ onLogout }) {
                   />
                   <label htmlFor="medicine-photo-upload" className="inline-flex items-center gap-2 bg-primary-50 border border-primary-200 hover:bg-primary-100 text-primary-800 text-xs font-semibold px-4 py-2.5 rounded-xl cursor-pointer">
                     <Upload size={14} />
-                    <span>Upload Image</span>
+                    <span>{medicineForm.imageUrl ? 'Replace Image' : 'Upload Image'}</span>
                   </label>
+                  {medicineForm.imageUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setMedicineForm({ ...medicineForm, imageUrl: '' })}
+                      className="text-xs font-semibold text-rose-600 hover:underline cursor-pointer"
+                    >
+                      Remove Image
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -2668,8 +2694,17 @@ export default function AdminDashboard({ onLogout }) {
                   />
                   <label htmlFor="category-photo-upload" className="inline-flex items-center gap-2 bg-primary-50 border border-primary-200 hover:bg-primary-100 text-primary-800 text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer">
                     <Upload size={12} />
-                    <span>Upload Image</span>
+                    <span>{categoryForm.imageUrl ? 'Replace Image' : 'Upload Image'}</span>
                   </label>
+                  {categoryForm.imageUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setCategoryForm({ ...categoryForm, imageUrl: '' })}
+                      className="text-xs font-semibold text-rose-600 hover:underline cursor-pointer"
+                    >
+                      Remove Image
+                    </button>
+                  )}
                 </div>
               </div>
 

@@ -1,6 +1,7 @@
 import express from 'express';
 import prisma from '../utils/db.js';
 import { protect } from '../middleware/auth.js';
+import { deleteImage } from '../utils/cloudinary.js';
 
 const router = express.Router();
 
@@ -189,6 +190,8 @@ router.put('/', protect, async (req, res) => {
 
   try {
     let about = await prisma.aboutContent.findFirst();
+    const oldStoryImageUrl = about?.storyImageUrl;
+
     const data = {
       heading: heading || 'About R.K. Ayurveda',
       aboutIntro: aboutIntro || '',
@@ -217,6 +220,10 @@ router.put('/', protect, async (req, res) => {
         where: { id: about.id },
         data
       });
+
+      if (storyImageUrl !== undefined && oldStoryImageUrl && oldStoryImageUrl !== storyImageUrl) {
+        await deleteImage(oldStoryImageUrl);
+      }
     } else {
       about = await prisma.aboutContent.create({
         data: { id: 1, ...data }

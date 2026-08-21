@@ -8,7 +8,7 @@ import { uploadImage } from '../utils/cloudinary.js';
 const router = express.Router();
 
 // Ensure uploads directory exists
-const uploadDir = './uploads';
+const uploadDir = process.env.VERCEL ? '/tmp' : './uploads';
 if (!process.env.VERCEL) {
   if (!fs.existsSync(uploadDir)) {
     try {
