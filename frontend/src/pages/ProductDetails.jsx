@@ -46,6 +46,13 @@ export default function ProductDetails() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [lastUpdated, setLastUpdated] = useState(Date.now());
+
+  const getBustedUrl = (url) => {
+    if (!url) return '';
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${lastUpdated}`;
+  };
 
   const loadProductDetails = () => {
     Promise.all([
@@ -77,6 +84,7 @@ export default function ProductDetails() {
       if (matchTypes.includes(data.type)) {
         console.log(`Product details updated (${data.type}), refreshing...`);
         loadProductDetails();
+        setLastUpdated(Date.now());
       }
     };
 
@@ -85,6 +93,7 @@ export default function ProductDetails() {
     const handleReconnect = () => {
       console.log('Socket reconnected, refreshing product details...');
       loadProductDetails();
+      setLastUpdated(Date.now());
     };
 
     window.addEventListener('socket_reconnected', handleReconnect);
@@ -159,7 +168,7 @@ export default function ProductDetails() {
             <div className="relative aspect-square rounded-2xl bg-primary-50 overflow-hidden border border-primary-100">
               {medicine.imageUrl ? (
                 <img
-                  src={medicine.imageUrl}
+                  src={getBustedUrl(medicine.imageUrl)}
                   alt={medicine.englishName || medicine.teluguName}
                   className="w-full h-full object-cover"
                 />

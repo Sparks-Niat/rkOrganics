@@ -129,6 +129,13 @@ export default function About() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(Date.now());
+
+  const getBustedUrl = (url) => {
+    if (!url) return '';
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${lastUpdated}`;
+  };
   const { socket } = useSocket();
 
   const loadData = () => {
@@ -173,6 +180,7 @@ export default function About() {
             setData(DEFAULT_FALLBACK_DATA);
           }
           setContact(contactData);
+          setLastUpdated(Date.now());
         }).catch(err => {
           console.error('Error refreshing content on socket event:', err);
           setData(DEFAULT_FALLBACK_DATA);
@@ -183,6 +191,7 @@ export default function About() {
     const handleReconnect = () => {
       console.log('Socket reconnected, refreshing about data...');
       loadData();
+      setLastUpdated(Date.now());
     };
 
     socket.on('website:data-updated', handleUpdate);
@@ -241,7 +250,7 @@ export default function About() {
                   <div className="relative group">
                     <div className="absolute inset-0 bg-primary-900 rounded-3xl translate-x-3 translate-y-3 -z-10 opacity-10 group-hover:translate-x-1 group-hover:translate-y-1 transition-transform"></div>
                     <img
-                      src={data.storyImageUrl || "/story.png"}
+                      src={data.storyImageUrl ? getBustedUrl(data.storyImageUrl) : "/story.png"}
                       alt="R.K. Ayurveda Story Ingredients"
                       className="w-full max-w-md h-[400px] object-cover rounded-3xl shadow-md border-4 border-white"
                     />
@@ -416,7 +425,7 @@ export default function About() {
                   <div key={img.id} className="bg-white rounded-3xl overflow-hidden border border-sand-100 group shadow-xs hover:shadow-md transition-all duration-300 flex flex-col">
                     <div className="h-64 overflow-hidden relative">
                       <img
-                        src={img.imageUrl}
+                        src={getBustedUrl(img.imageUrl)}
                         alt={img.title || "Gallery image"}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
@@ -452,7 +461,7 @@ export default function About() {
                   <div key={c.id} className="bg-white p-6 rounded-2xl border border-sand-150 shadow-xs flex flex-col items-center text-center space-y-3 hover:shadow-sm transition-all duration-300">
                     {c.imageUrl ? (
                       <img
-                        src={c.imageUrl}
+                        src={getBustedUrl(c.imageUrl)}
                         alt={c.title}
                         className="h-20 w-auto object-contain mb-2"
                       />

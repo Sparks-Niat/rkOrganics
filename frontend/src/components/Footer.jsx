@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Clock, Instagram, Facebook, Twitter } from 'lucide-react';
 import { api } from '../utils/api';
+import { useSocket } from '../context/SocketContext';
 
 export default function Footer() {
   const [contact, setContact] = useState({
@@ -21,6 +22,40 @@ export default function Footer() {
     aboutIntro: 'Dedicated to bringing authentic Ayurvedic health and wellness to your home.',
     footerText: '© 2026 R.K. Ayurveda. All rights reserved.',
   });
+
+  const [lastUpdated, setLastUpdated] = useState(Date.now());
+  const { socket } = useSocket();
+
+  const getBustedUrl = (url) => {
+    if (!url) return '';
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${lastUpdated}`;
+  };
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUpdate = (data) => {
+      if (data.type === 'settings' || data.type === 'contact') {
+        console.log(`Footer data updated (${data.type}), refreshing settings/contact...`);
+        api.contact.get()
+          .then(res => {
+            if (res) setContact(res);
+          });
+        api.settings.get()
+          .then(res => {
+            if (res) setSettings(res);
+          });
+      }
+      setLastUpdated(Date.now());
+    };
+
+    socket.on('website:data-updated', handleUpdate);
+
+    return () => {
+      socket.off('website:data-updated', handleUpdate);
+    };
+  }, [socket]);
 
   useEffect(() => {
     // Fetch contact details
@@ -47,7 +82,7 @@ export default function Footer() {
           <div className="md:col-span-1">
             <div className="flex items-center gap-3 mb-4">
               <img 
-                src={settings.logoUrl || "/logo.jpg"} 
+                src={settings.logoUrl ? getBustedUrl(settings.logoUrl) : "/logo.jpg"} 
                 alt="RK Organics Logo" 
                 className="h-14 w-14 object-contain rounded-full border border-primary-900 shadow-xs bg-white p-0.5"
               />

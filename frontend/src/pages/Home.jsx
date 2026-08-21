@@ -79,6 +79,13 @@ export default function Home() {
   const [testimonials, setTestimonials] = useState([]);
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(Date.now());
+
+  const getBustedUrl = (url) => {
+    if (!url) return '';
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${lastUpdated}`;
+  };
 
   const loadHomeData = () => {
     Promise.all([
@@ -160,6 +167,7 @@ export default function Home() {
       if (homeTypes.includes(data.type)) {
         console.log(`Home page data updated (${data.type}), refreshing...`);
         loadHomeData();
+        setLastUpdated(Date.now());
       }
     };
 
@@ -168,6 +176,7 @@ export default function Home() {
     const handleReconnect = () => {
       console.log('Socket reconnected, refreshing home page data...');
       loadHomeData();
+      setLastUpdated(Date.now());
     };
 
     window.addEventListener('socket_reconnected', handleReconnect);
@@ -253,7 +262,7 @@ export default function Home() {
               <div className="lg:col-span-7 text-center lg:text-left space-y-6">
                 {settings.logoUrl && (
                   <div className="inline-flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-primary-200 shadow-xs mb-2">
-                    <img src={settings.logoUrl} alt="Logo" className="h-6 w-6 object-contain rounded-full" />
+                    <img src={getBustedUrl(settings.logoUrl)} alt="Logo" className="h-6 w-6 object-contain rounded-full" />
                     <span className="text-xs font-semibold text-primary-700 uppercase tracking-wider">{settings.businessName}</span>
                   </div>
                 )}
@@ -287,7 +296,7 @@ export default function Home() {
                 <div className="relative w-full max-w-md">
                   <div className="absolute inset-0 bg-primary-500 rounded-3xl rotate-3 scale-95 opacity-10"></div>
                   <img
-                    src="/hero.png"
+                    src={settings.heroImageUrl ? getBustedUrl(settings.heroImageUrl) : "/hero.png"}
                     alt="Pure Ayurvedic Herbal Ingredients"
                     className="relative z-10 w-full h-[320px] sm:h-[400px] object-cover rounded-3xl shadow-xl border-4 border-white"
                   />
@@ -318,7 +327,7 @@ export default function Home() {
               <div key={benefit.id || idx} className="bg-white p-8 rounded-2xl border border-primary-100 shadow-xs flex items-start gap-4">
                 <div className="shrink-0 text-primary-600 mt-1 h-10 w-10 rounded-xl bg-primary-50 flex items-center justify-center font-bold text-base">
                   {benefit.imageUrl ? (
-                    <img src={benefit.imageUrl} alt={benefit.title} className="h-full w-full object-cover rounded-xl" />
+                    <img src={getBustedUrl(benefit.imageUrl)} alt={benefit.title} className="h-full w-full object-cover rounded-xl" />
                   ) : (
                     <CheckCircle2 size={24} />
                   )}
@@ -370,7 +379,7 @@ export default function Home() {
                       <div className="h-64 overflow-hidden relative bg-primary-50">
                         {category.imageUrl ? (
                           <img
-                            src={category.imageUrl}
+                            src={getBustedUrl(category.imageUrl)}
                             alt={category.englishName}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
@@ -466,7 +475,7 @@ export default function Home() {
                     <div className="h-64 overflow-hidden relative bg-primary-50">
                       {medicine.imageUrl ? (
                         <img
-                          src={medicine.imageUrl}
+                          src={getBustedUrl(medicine.imageUrl)}
                           alt={medicine.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
@@ -597,7 +606,7 @@ export default function Home() {
                   <div className="flex items-center gap-3 pt-4 border-t border-primary-50">
                     <div className="h-10 w-10 rounded-full bg-primary-150 flex items-center justify-center overflow-hidden font-bold text-primary-700">
                       {test.imageUrl ? (
-                        <img src={test.imageUrl} alt={test.name} className="h-full w-full object-cover" />
+                        <img src={getBustedUrl(test.imageUrl)} alt={test.name} className="h-full w-full object-cover" />
                       ) : (
                         test.name.charAt(0)
                       )}

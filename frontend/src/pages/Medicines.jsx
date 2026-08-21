@@ -44,6 +44,13 @@ export default function Medicines() {
     whatsappNumber: '9121756114',
     defaultMessage: 'Hello, I would like to order {medicineName}. Price: {price}. Quantity: {quantity}.',
   });
+  const [lastUpdated, setLastUpdated] = useState(Date.now());
+
+  const getBustedUrl = (url) => {
+    if (!url) return '';
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${lastUpdated}`;
+  };
   
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -78,6 +85,7 @@ export default function Medicines() {
       if (matchTypes.includes(data.type)) {
         console.log(`Medicines page data updated (${data.type}), refreshing...`);
         loadMedicinesPageData();
+        setLastUpdated(Date.now());
       }
     };
 
@@ -86,6 +94,7 @@ export default function Medicines() {
     const handleReconnect = () => {
       console.log('Socket reconnected, refreshing medicines list data...');
       loadMedicinesPageData();
+      setLastUpdated(Date.now());
     };
 
     window.addEventListener('socket_reconnected', handleReconnect);
@@ -286,7 +295,7 @@ export default function Medicines() {
                         <Link to={`/product/${medicine.slug}`} className="h-56 overflow-hidden relative bg-primary-50 border-b border-primary-50 block">
                           {medicine.imageUrl ? (
                             <img
-                              src={medicine.imageUrl}
+                              src={getBustedUrl(medicine.imageUrl)}
                               alt={medicine.englishName || medicine.teluguName}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
@@ -433,7 +442,7 @@ export default function Medicines() {
                       <Link to={`/product/${medicine.slug}`} className="h-56 overflow-hidden relative bg-primary-50 border-b border-primary-50 block">
                         {medicine.imageUrl ? (
                           <img
-                            src={medicine.imageUrl}
+                            src={getBustedUrl(medicine.imageUrl)}
                             alt={medicine.englishName || medicine.teluguName}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
@@ -566,7 +575,7 @@ export default function Medicines() {
                       <div className="h-48 overflow-hidden relative bg-primary-50">
                         {cat.imageUrl ? (
                           <img
-                            src={cat.imageUrl}
+                            src={getBustedUrl(cat.imageUrl)}
                             alt={cat.englishName}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />

@@ -2,13 +2,49 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Phone, Shield } from 'lucide-react';
 import { api } from '../utils/api';
+import { useSocket } from '../context/SocketContext';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [settings, setSettings] = useState({ businessName: 'R.K. Ayurveda', logoUrl: '' });
   const [navItems, setNavItems] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(Date.now());
   const location = useLocation();
+  const { socket } = useSocket();
+
+  const getBustedUrl = (url) => {
+    if (!url) return '';
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${lastUpdated}`;
+  };
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUpdate = (data) => {
+      if (data.type === 'settings' || data.type === 'navigation') {
+        console.log(`Navbar data updated (${data.type}), refreshing settings/nav...`);
+        api.settings.get()
+          .then(res => {
+            if (res) setSettings(res);
+          });
+        api.navigation.getAll()
+          .then(res => {
+            if (res && res.length > 0) {
+              setNavItems(res.filter(item => item.isActive));
+            }
+          });
+      }
+      setLastUpdated(Date.now());
+    };
+
+    socket.on('website:data-updated', handleUpdate);
+
+    return () => {
+      socket.off('website:data-updated', handleUpdate);
+    };
+  }, [socket]);
 
   useEffect(() => {
     // Fetch settings for dynamic logo/name
@@ -62,7 +98,7 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-3" aria-label="RK Organics Home">
               <img 
-                src={settings.logoUrl || "/logo.jpg"} 
+                src={settings.logoUrl ? getBustedUrl(settings.logoUrl) : "/logo.jpg"} 
                 alt="RK Organics Logo" 
                 className="h-16 w-16 object-contain rounded-full border border-primary-100/50 shadow-xs"
               />
