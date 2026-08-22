@@ -14046,6 +14046,9 @@ export namespace Prisma {
     discountPrice: number | null
     quantity: string | null
     imageUrl: string | null
+    imageUrl2: string | null
+    imageUrl3: string | null
+    imageUrl4: string | null
     availability: string | null
     whatsappEnabled: boolean | null
     displayOrder: number | null
@@ -14070,6 +14073,9 @@ export namespace Prisma {
     discountPrice: number | null
     quantity: string | null
     imageUrl: string | null
+    imageUrl2: string | null
+    imageUrl3: string | null
+    imageUrl4: string | null
     availability: string | null
     whatsappEnabled: boolean | null
     displayOrder: number | null
@@ -14094,6 +14100,9 @@ export namespace Prisma {
     discountPrice: number
     quantity: number
     imageUrl: number
+    imageUrl2: number
+    imageUrl3: number
+    imageUrl4: number
     availability: number
     whatsappEnabled: number
     displayOrder: number
@@ -14134,6 +14143,9 @@ export namespace Prisma {
     discountPrice?: true
     quantity?: true
     imageUrl?: true
+    imageUrl2?: true
+    imageUrl3?: true
+    imageUrl4?: true
     availability?: true
     whatsappEnabled?: true
     displayOrder?: true
@@ -14158,6 +14170,9 @@ export namespace Prisma {
     discountPrice?: true
     quantity?: true
     imageUrl?: true
+    imageUrl2?: true
+    imageUrl3?: true
+    imageUrl4?: true
     availability?: true
     whatsappEnabled?: true
     displayOrder?: true
@@ -14182,6 +14197,9 @@ export namespace Prisma {
     discountPrice?: true
     quantity?: true
     imageUrl?: true
+    imageUrl2?: true
+    imageUrl3?: true
+    imageUrl4?: true
     availability?: true
     whatsappEnabled?: true
     displayOrder?: true
@@ -14293,6 +14311,9 @@ export namespace Prisma {
     discountPrice: number | null
     quantity: string | null
     imageUrl: string | null
+    imageUrl2: string | null
+    imageUrl3: string | null
+    imageUrl4: string | null
     availability: string
     whatsappEnabled: boolean
     displayOrder: number
@@ -14336,6 +14357,9 @@ export namespace Prisma {
     discountPrice?: boolean
     quantity?: boolean
     imageUrl?: boolean
+    imageUrl2?: boolean
+    imageUrl3?: boolean
+    imageUrl4?: boolean
     availability?: boolean
     whatsappEnabled?: boolean
     displayOrder?: boolean
@@ -14362,6 +14386,9 @@ export namespace Prisma {
     discountPrice?: boolean
     quantity?: boolean
     imageUrl?: boolean
+    imageUrl2?: boolean
+    imageUrl3?: boolean
+    imageUrl4?: boolean
     availability?: boolean
     whatsappEnabled?: boolean
     displayOrder?: boolean
@@ -14386,6 +14413,9 @@ export namespace Prisma {
     discountPrice?: boolean
     quantity?: boolean
     imageUrl?: boolean
+    imageUrl2?: boolean
+    imageUrl3?: boolean
+    imageUrl4?: boolean
     availability?: boolean
     whatsappEnabled?: boolean
     displayOrder?: boolean
@@ -14421,6 +14451,9 @@ export namespace Prisma {
       discountPrice: number | null
       quantity: string | null
       imageUrl: string | null
+      imageUrl2: string | null
+      imageUrl3: string | null
+      imageUrl4: string | null
       availability: string
       whatsappEnabled: boolean
       displayOrder: number
@@ -14836,6 +14869,9 @@ export namespace Prisma {
     readonly discountPrice: FieldRef<"Medicine", 'Float'>
     readonly quantity: FieldRef<"Medicine", 'String'>
     readonly imageUrl: FieldRef<"Medicine", 'String'>
+    readonly imageUrl2: FieldRef<"Medicine", 'String'>
+    readonly imageUrl3: FieldRef<"Medicine", 'String'>
+    readonly imageUrl4: FieldRef<"Medicine", 'String'>
     readonly availability: FieldRef<"Medicine", 'String'>
     readonly whatsappEnabled: FieldRef<"Medicine", 'Boolean'>
     readonly displayOrder: FieldRef<"Medicine", 'Int'>
@@ -20170,6 +20206,9 @@ export namespace Prisma {
     discountPrice: 'discountPrice',
     quantity: 'quantity',
     imageUrl: 'imageUrl',
+    imageUrl2: 'imageUrl2',
+    imageUrl3: 'imageUrl3',
+    imageUrl4: 'imageUrl4',
     availability: 'availability',
     whatsappEnabled: 'whatsappEnabled',
     displayOrder: 'displayOrder',
@@ -21267,6 +21306,9 @@ export namespace Prisma {
     discountPrice?: FloatNullableFilter<"Medicine"> | number | null
     quantity?: StringNullableFilter<"Medicine"> | string | null
     imageUrl?: StringNullableFilter<"Medicine"> | string | null
+    imageUrl2?: StringNullableFilter<"Medicine"> | string | null
+    imageUrl3?: StringNullableFilter<"Medicine"> | string | null
+    imageUrl4?: StringNullableFilter<"Medicine"> | string | null
     availability?: StringFilter<"Medicine"> | string
     whatsappEnabled?: BoolFilter<"Medicine"> | boolean
     displayOrder?: IntFilter<"Medicine"> | number
@@ -21292,6 +21334,9 @@ export namespace Prisma {
     discountPrice?: SortOrderInput | SortOrder
     quantity?: SortOrderInput | SortOrder
     imageUrl?: SortOrderInput | SortOrder
+    imageUrl2?: SortOrderInput | SortOrder
+    imageUrl3?: SortOrderInput | SortOrder
+    imageUrl4?: SortOrderInput | SortOrder
     availability?: SortOrder
     whatsappEnabled?: SortOrder
     displayOrder?: SortOrder
@@ -21320,6 +21365,9 @@ export namespace Prisma {
     discountPrice?: FloatNullableFilter<"Medicine"> | number | null
     quantity?: StringNullableFilter<"Medicine"> | string | null
     imageUrl?: StringNullableFilter<"Medicine"> | string | null
+    imageUrl2?: StringNullableFilter<"Medicine"> | string | null
+    imageUrl3?: StringNullableFilter<"Medicine"> | string | null
+    imageUrl4?: StringNullableFilter<"Medicine"> | string | null
     availability?: StringFilter<"Medicine"> | string
     whatsappEnabled?: BoolFilter<"Medicine"> | boolean
     displayOrder?: IntFilter<"Medicine"> | number
@@ -21345,6 +21393,9 @@ export namespace Prisma {
     discountPrice?: SortOrderInput | SortOrder
     quantity?: SortOrderInput | SortOrder
     imageUrl?: SortOrderInput | SortOrder
+    imageUrl2?: SortOrderInput | SortOrder
+    imageUrl3?: SortOrderInput | SortOrder
+    imageUrl4?: SortOrderInput | SortOrder
     availability?: SortOrder
     whatsappEnabled?: SortOrder
     displayOrder?: SortOrder
@@ -21377,6 +21428,9 @@ export namespace Prisma {
     discountPrice?: FloatNullableWithAggregatesFilter<"Medicine"> | number | null
     quantity?: StringNullableWithAggregatesFilter<"Medicine"> | string | null
     imageUrl?: StringNullableWithAggregatesFilter<"Medicine"> | string | null
+    imageUrl2?: StringNullableWithAggregatesFilter<"Medicine"> | string | null
+    imageUrl3?: StringNullableWithAggregatesFilter<"Medicine"> | string | null
+    imageUrl4?: StringNullableWithAggregatesFilter<"Medicine"> | string | null
     availability?: StringWithAggregatesFilter<"Medicine"> | string
     whatsappEnabled?: BoolWithAggregatesFilter<"Medicine"> | boolean
     displayOrder?: IntWithAggregatesFilter<"Medicine"> | number
@@ -22752,6 +22806,9 @@ export namespace Prisma {
     discountPrice?: number | null
     quantity?: string | null
     imageUrl?: string | null
+    imageUrl2?: string | null
+    imageUrl3?: string | null
+    imageUrl4?: string | null
     availability?: string
     whatsappEnabled?: boolean
     displayOrder?: number
@@ -22777,6 +22834,9 @@ export namespace Prisma {
     discountPrice?: number | null
     quantity?: string | null
     imageUrl?: string | null
+    imageUrl2?: string | null
+    imageUrl3?: string | null
+    imageUrl4?: string | null
     availability?: string
     whatsappEnabled?: boolean
     displayOrder?: number
@@ -22801,6 +22861,9 @@ export namespace Prisma {
     discountPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl2?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl3?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl4?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: StringFieldUpdateOperationsInput | string
     whatsappEnabled?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
@@ -22826,6 +22889,9 @@ export namespace Prisma {
     discountPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl2?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl3?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl4?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: StringFieldUpdateOperationsInput | string
     whatsappEnabled?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
@@ -22851,6 +22917,9 @@ export namespace Prisma {
     discountPrice?: number | null
     quantity?: string | null
     imageUrl?: string | null
+    imageUrl2?: string | null
+    imageUrl3?: string | null
+    imageUrl4?: string | null
     availability?: string
     whatsappEnabled?: boolean
     displayOrder?: number
@@ -22874,6 +22943,9 @@ export namespace Prisma {
     discountPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl2?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl3?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl4?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: StringFieldUpdateOperationsInput | string
     whatsappEnabled?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
@@ -22898,6 +22970,9 @@ export namespace Prisma {
     discountPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl2?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl3?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl4?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: StringFieldUpdateOperationsInput | string
     whatsappEnabled?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
@@ -24028,6 +24103,9 @@ export namespace Prisma {
     discountPrice?: SortOrder
     quantity?: SortOrder
     imageUrl?: SortOrder
+    imageUrl2?: SortOrder
+    imageUrl3?: SortOrder
+    imageUrl4?: SortOrder
     availability?: SortOrder
     whatsappEnabled?: SortOrder
     displayOrder?: SortOrder
@@ -24059,6 +24137,9 @@ export namespace Prisma {
     discountPrice?: SortOrder
     quantity?: SortOrder
     imageUrl?: SortOrder
+    imageUrl2?: SortOrder
+    imageUrl3?: SortOrder
+    imageUrl4?: SortOrder
     availability?: SortOrder
     whatsappEnabled?: SortOrder
     displayOrder?: SortOrder
@@ -24083,6 +24164,9 @@ export namespace Prisma {
     discountPrice?: SortOrder
     quantity?: SortOrder
     imageUrl?: SortOrder
+    imageUrl2?: SortOrder
+    imageUrl3?: SortOrder
+    imageUrl4?: SortOrder
     availability?: SortOrder
     whatsappEnabled?: SortOrder
     displayOrder?: SortOrder
@@ -24723,6 +24807,9 @@ export namespace Prisma {
     discountPrice?: number | null
     quantity?: string | null
     imageUrl?: string | null
+    imageUrl2?: string | null
+    imageUrl3?: string | null
+    imageUrl4?: string | null
     availability?: string
     whatsappEnabled?: boolean
     displayOrder?: number
@@ -24747,6 +24834,9 @@ export namespace Prisma {
     discountPrice?: number | null
     quantity?: string | null
     imageUrl?: string | null
+    imageUrl2?: string | null
+    imageUrl3?: string | null
+    imageUrl4?: string | null
     availability?: string
     whatsappEnabled?: boolean
     displayOrder?: number
@@ -24795,6 +24885,9 @@ export namespace Prisma {
     discountPrice?: FloatNullableFilter<"Medicine"> | number | null
     quantity?: StringNullableFilter<"Medicine"> | string | null
     imageUrl?: StringNullableFilter<"Medicine"> | string | null
+    imageUrl2?: StringNullableFilter<"Medicine"> | string | null
+    imageUrl3?: StringNullableFilter<"Medicine"> | string | null
+    imageUrl4?: StringNullableFilter<"Medicine"> | string | null
     availability?: StringFilter<"Medicine"> | string
     whatsappEnabled?: BoolFilter<"Medicine"> | boolean
     displayOrder?: IntFilter<"Medicine"> | number
@@ -24886,6 +24979,9 @@ export namespace Prisma {
     discountPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl2?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl3?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl4?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: StringFieldUpdateOperationsInput | string
     whatsappEnabled?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
@@ -24910,6 +25006,9 @@ export namespace Prisma {
     discountPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl2?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl3?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl4?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: StringFieldUpdateOperationsInput | string
     whatsappEnabled?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number
@@ -24934,6 +25033,9 @@ export namespace Prisma {
     discountPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: NullableStringFieldUpdateOperationsInput | string | null
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl2?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl3?: NullableStringFieldUpdateOperationsInput | string | null
+    imageUrl4?: NullableStringFieldUpdateOperationsInput | string | null
     availability?: StringFieldUpdateOperationsInput | string
     whatsappEnabled?: BoolFieldUpdateOperationsInput | boolean
     displayOrder?: IntFieldUpdateOperationsInput | number

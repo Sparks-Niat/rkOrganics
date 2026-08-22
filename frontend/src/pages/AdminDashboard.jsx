@@ -67,6 +67,7 @@ export default function AdminDashboard({ onLogout }) {
   // Form states
   const [medicineForm, setMedicineForm] = useState({
     name: '', teluguName: '', englishName: '', description: '', shortDescription: '', price: '', discountPrice: '', quantity: '', imageUrl: '', 
+    imageUrl2: '', imageUrl3: '', imageUrl4: '',
     availability: 'AVAILABLE', whatsappEnabled: true, displayOrder: 0, categoryIds: [],
     ingredients: '', benefits: '', usageInstructions: '', isFeatured: false, isActive: true
   });
@@ -219,6 +220,12 @@ export default function AdminDashboard({ onLogout }) {
         setAboutContent(prev => ({ ...prev, imageUrl: data.imageUrl }));
       } else if (type === 'medicine') {
         setMedicineForm(prev => ({ ...prev, imageUrl: data.imageUrl }));
+      } else if (type === 'medicine_2') {
+        setMedicineForm(prev => ({ ...prev, imageUrl2: data.imageUrl }));
+      } else if (type === 'medicine_3') {
+        setMedicineForm(prev => ({ ...prev, imageUrl3: data.imageUrl }));
+      } else if (type === 'medicine_4') {
+        setMedicineForm(prev => ({ ...prev, imageUrl4: data.imageUrl }));
       } else if (type === 'category') {
         setCategoryForm(prev => ({ ...prev, imageUrl: data.imageUrl }));
       } else if (type === 'benefit') {
@@ -412,6 +419,7 @@ export default function AdminDashboard({ onLogout }) {
     if (mode === 'add') {
       setMedicineForm({
         name: '', teluguName: '', englishName: '', description: '', shortDescription: '', price: '', discountPrice: '', quantity: '', imageUrl: '', 
+        imageUrl2: '', imageUrl3: '', imageUrl4: '',
         availability: 'AVAILABLE', whatsappEnabled: true, displayOrder: 0, 
         categoryIds: selectedCategory ? [selectedCategory.id] : [],
         ingredients: '', benefits: '', usageInstructions: '', isFeatured: false, isActive: true
@@ -427,6 +435,9 @@ export default function AdminDashboard({ onLogout }) {
         discountPrice: med.discountPrice ? med.discountPrice.toString() : '',
         quantity: med.quantity || '',
         imageUrl: med.imageUrl || '',
+        imageUrl2: med.imageUrl2 || '',
+        imageUrl3: med.imageUrl3 || '',
+        imageUrl4: med.imageUrl4 || '',
         availability: med.availability,
         whatsappEnabled: med.whatsappEnabled,
         displayOrder: med.displayOrder,
@@ -2731,37 +2742,52 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               </div>
 
-              {/* Medicine Image */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-primary-900 block">Medicine Photo</label>
-                <div className="flex items-center gap-4">
-                  <div className="h-20 w-20 rounded-2xl bg-sand-100 border border-primary-100 flex items-center justify-center overflow-hidden shrink-0">
-                    {medicineForm.imageUrl ? (
-                      <img src={medicineForm.imageUrl} alt="Medicine preview" className="h-full w-full object-cover" />
-                    ) : (
-                      <ImageIcon className="text-sand-400" size={24} />
-                    )}
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e.target.files[0], 'medicine')}
-                    className="hidden"
-                    id="medicine-photo-upload"
-                  />
-                  <label htmlFor="medicine-photo-upload" className="inline-flex items-center gap-2 bg-primary-50 border border-primary-200 hover:bg-primary-100 text-primary-800 text-xs font-semibold px-4 py-2.5 rounded-xl cursor-pointer">
-                    <Upload size={14} />
-                    <span>{medicineForm.imageUrl ? 'Replace Image' : 'Upload Image'}</span>
-                  </label>
-                  {medicineForm.imageUrl && (
-                    <button
-                      type="button"
-                      onClick={() => setMedicineForm({ ...medicineForm, imageUrl: '' })}
-                      className="text-xs font-semibold text-rose-600 hover:underline cursor-pointer"
-                    >
-                      Remove Image
-                    </button>
-                  )}
+              {/* Medicine Images (Up to 4) */}
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-primary-900 block">Medicine Photos (Up to 4)</label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { key: 'imageUrl', label: 'Main Image', id: 'medicine-photo-upload-1', type: 'medicine' },
+                    { key: 'imageUrl2', label: 'Image 2', id: 'medicine-photo-upload-2', type: 'medicine_2' },
+                    { key: 'imageUrl3', label: 'Image 3', id: 'medicine-photo-upload-3', type: 'medicine_3' },
+                    { key: 'imageUrl4', label: 'Image 4', id: 'medicine-photo-upload-4', type: 'medicine_4' }
+                  ].map((slot) => {
+                    const imgUrl = medicineForm[slot.key];
+                    return (
+                      <div key={slot.key} className="bg-sand-50/50 p-3 rounded-2xl border border-primary-100/50 flex flex-col items-center gap-3">
+                        <span className="text-[10px] font-bold text-primary-700 uppercase tracking-wider">{slot.label}</span>
+                        <div className="h-24 w-24 rounded-xl bg-white border border-primary-100 flex items-center justify-center overflow-hidden shrink-0 shadow-xs relative">
+                          {imgUrl ? (
+                            <img src={imgUrl} alt={slot.label} className="h-full w-full object-cover" />
+                          ) : (
+                            <ImageIcon className="text-sand-300" size={28} />
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e.target.files[0], slot.type)}
+                          className="hidden"
+                          id={slot.id}
+                        />
+                        <div className="flex flex-col items-center gap-1.5 w-full">
+                          <label htmlFor={slot.id} className="inline-flex items-center justify-center gap-1.5 bg-white border border-primary-200 hover:bg-primary-50 text-primary-800 text-[11px] font-semibold px-3 py-1.5 rounded-xl cursor-pointer w-full text-center shadow-xs">
+                            <Upload size={12} />
+                            <span>{imgUrl ? 'Replace' : 'Upload'}</span>
+                          </label>
+                          {imgUrl && (
+                            <button
+                              type="button"
+                              onClick={() => setMedicineForm({ ...medicineForm, [slot.key]: '' })}
+                              className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 hover:underline cursor-pointer"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 

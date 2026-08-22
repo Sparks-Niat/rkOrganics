@@ -170,6 +170,9 @@ model Medicine {
   discountPrice     Float?
   quantity          String?    // e.g. "10 tablets"
   imageUrl          String?    // Optional for raw ingredients
+  imageUrl2         String?
+  imageUrl3         String?
+  imageUrl4         String?
   availability      String     @default("AVAILABLE") // "AVAILABLE", "OUT_OF_STOCK", "HIDDEN"
   whatsappEnabled   Boolean    @default(true)
   displayOrder      Int        @default(0)

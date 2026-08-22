@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Phone, ArrowLeft, Heart, CheckCircle, ShieldCheck, HelpCircle, ShieldAlert } from 'lucide-react';
+import { Phone, ArrowLeft, Heart, CheckCircle, ShieldCheck, HelpCircle, ShieldAlert, ChevronLeft, ChevronRight } from 'lucide-react';
 import { api } from '../utils/api';
 import { useSocket } from '../context/SocketContext';
 
@@ -47,6 +47,9 @@ export default function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState(Date.now());
+  const [activeImgIndex, setActiveImgIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   const getBustedUrl = (url) => {
     if (!url) return '';
@@ -72,7 +75,12 @@ export default function ProductDetails() {
   useEffect(() => {
     setLoading(true);
     loadProductDetails();
+    setActiveImgIndex(0);
   }, [slug]);
+
+  useEffect(() => {
+    setActiveImgIndex(0);
+  }, [medicine?.id]);
 
   const { socket } = useSocket();
 
@@ -123,6 +131,31 @@ export default function ProductDetails() {
     window.open(url, '_blank');
   };
 
+  const images = [
+    medicine?.imageUrl,
+    medicine?.imageUrl2,
+    medicine?.imageUrl3,
+    medicine?.imageUrl4
+  ].filter(Boolean);
+
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (images.length <= 1) return;
+    if (touchStart - touchEnd > 50) {
+      setActiveImgIndex((prev) => (prev + 1) % images.length);
+    }
+    if (touchStart - touchEnd < -50) {
+      setActiveImgIndex((prev) => (prev - 1 + images.length) % images.length);
+    }
+  };
+
   if (loading) {
     return <ProductSkeleton />;
   }
@@ -165,13 +198,59 @@ export default function ProductDetails() {
           
           {/* Left Column: Image Gallery */}
           <div className="lg:col-span-5 flex flex-col space-y-4">
-            <div className="relative aspect-square rounded-2xl bg-primary-50 overflow-hidden border border-primary-100">
-              {medicine.imageUrl ? (
-                <img
-                  src={getBustedUrl(medicine.imageUrl)}
-                  alt={medicine.englishName || medicine.teluguName}
-                  className="w-full h-full object-cover"
-                />
+            <div 
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              className="relative aspect-square rounded-2xl bg-primary-50 overflow-hidden border border-primary-100 group select-none"
+            >
+              {images.length > 0 ? (
+                <>
+                  <div className="w-full h-full relative overflow-hidden">
+                    <img
+                      src={getBustedUrl(images[activeImgIndex])}
+                      alt={`${medicine.englishName || medicine.teluguName} - View ${activeImgIndex + 1}`}
+                      className="w-full h-full object-cover transition-all duration-300"
+                    />
+                  </div>
+
+                  {images.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setActiveImgIndex((prev) => (prev - 1 + images.length) % images.length)}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-primary-800 p-2 rounded-full shadow-md hover:shadow-lg transition-all z-10 cursor-pointer active:scale-95 flex items-center justify-center border border-primary-100"
+                        aria-label="Previous image"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveImgIndex((prev) => (prev + 1) % images.length)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-primary-800 p-2 rounded-full shadow-md hover:shadow-lg transition-all z-10 cursor-pointer active:scale-95 flex items-center justify-center border border-primary-100"
+                        aria-label="Next image"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+                    </>
+                  )}
+
+                  {images.length > 1 && (
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-xs">
+                      {images.map((_, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setActiveImgIndex(idx)}
+                          className={`h-2 rounded-full transition-all cursor-pointer ${
+                            idx === activeImgIndex ? 'w-5 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'
+                          }`}
+                          aria-label={`Go to slide ${idx + 1}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-primary-300">
                   <Heart size={72} className="stroke-1" />

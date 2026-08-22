@@ -95,6 +95,9 @@ router.post('/', protect, async (req, res) => {
     discountPrice,
     quantity,
     imageUrl,
+    imageUrl2,
+    imageUrl3,
+    imageUrl4,
     availability,
     whatsappEnabled,
     displayOrder,
@@ -142,6 +145,9 @@ router.post('/', protect, async (req, res) => {
         discountPrice: discPrice,
         quantity: quantity || null,
         imageUrl: imageUrl || '',
+        imageUrl2: imageUrl2 || null,
+        imageUrl3: imageUrl3 || null,
+        imageUrl4: imageUrl4 || null,
         availability: availability || 'AVAILABLE',
         whatsappEnabled: whatsappEnabled !== undefined ? !!whatsappEnabled : true,
         displayOrder: order,
@@ -182,6 +188,9 @@ router.put('/:id', protect, async (req, res) => {
     discountPrice,
     quantity,
     imageUrl,
+    imageUrl2,
+    imageUrl3,
+    imageUrl4,
     availability,
     whatsappEnabled,
     displayOrder,
@@ -234,6 +243,9 @@ router.put('/:id', protect, async (req, res) => {
     }
 
     if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+    if (imageUrl2 !== undefined) updateData.imageUrl2 = imageUrl2;
+    if (imageUrl3 !== undefined) updateData.imageUrl3 = imageUrl3;
+    if (imageUrl4 !== undefined) updateData.imageUrl4 = imageUrl4;
     if (availability !== undefined) updateData.availability = availability;
     if (whatsappEnabled !== undefined) updateData.whatsappEnabled = !!whatsappEnabled;
     if (displayOrder !== undefined) updateData.displayOrder = parseInt(displayOrder);
@@ -258,6 +270,9 @@ router.put('/:id', protect, async (req, res) => {
     }
 
     const oldImageUrl = existingMedicine.imageUrl;
+    const oldImageUrl2 = existingMedicine.imageUrl2;
+    const oldImageUrl3 = existingMedicine.imageUrl3;
+    const oldImageUrl4 = existingMedicine.imageUrl4;
 
     const medicine = await prisma.medicine.update({
       where: { id: medId },
@@ -269,6 +284,15 @@ router.put('/:id', protect, async (req, res) => {
 
     if (imageUrl !== undefined && oldImageUrl && oldImageUrl !== imageUrl) {
       await deleteImage(oldImageUrl);
+    }
+    if (imageUrl2 !== undefined && oldImageUrl2 && oldImageUrl2 !== imageUrl2) {
+      await deleteImage(oldImageUrl2);
+    }
+    if (imageUrl3 !== undefined && oldImageUrl3 && oldImageUrl3 !== imageUrl3) {
+      await deleteImage(oldImageUrl3);
+    }
+    if (imageUrl4 !== undefined && oldImageUrl4 && oldImageUrl4 !== imageUrl4) {
+      await deleteImage(oldImageUrl4);
     }
 
     req.app.get('io')?.emit('website:data-updated', { type: 'medicines' });
@@ -305,6 +329,15 @@ router.delete('/:id', protect, async (req, res) => {
 
     if (existingMedicine.imageUrl) {
       await deleteImage(existingMedicine.imageUrl);
+    }
+    if (existingMedicine.imageUrl2) {
+      await deleteImage(existingMedicine.imageUrl2);
+    }
+    if (existingMedicine.imageUrl3) {
+      await deleteImage(existingMedicine.imageUrl3);
+    }
+    if (existingMedicine.imageUrl4) {
+      await deleteImage(existingMedicine.imageUrl4);
     }
 
     req.app.get('io')?.emit('website:data-updated', { type: 'medicines' });
