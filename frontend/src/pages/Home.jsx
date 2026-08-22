@@ -46,6 +46,69 @@ const CategorySkeleton = () => (
   </div>
 );
 
+const FaceCreamShowcase = ({ allMedicines }) => {
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
+  const images = [
+    '/face-cream-1.png',
+    '/face-cream-2.png',
+    '/face-cream-3.png',
+    '/face-cream-4.png',
+    '/face-cream-5.jpg'
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImgIndex((prev) => (prev + 1) % images.length);
+    }, 2000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const faceCreamProduct = allMedicines?.find(m => 
+    m.slug.includes('face-cream') || 
+    m.slug.includes('facecream') || 
+    m.englishName?.toLowerCase().includes('face cream')
+  );
+  
+  const linkUrl = faceCreamProduct ? `/product/${faceCreamProduct.slug}` : '/medicines';
+
+  return (
+    <section className="py-12 bg-gradient-to-b from-primary-50/30 to-sand-50/20 border-b border-primary-100/40 revealed">
+      <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
+        
+        {/* Header content */}
+        <div className="space-y-2">
+          <span className="text-accent-600 text-xs sm:text-sm font-bold uppercase tracking-widest block">
+            Featured Face Cream
+          </span>
+          <h2 className="font-display font-bold text-2xl sm:text-3xl text-primary-955">
+            R.K. Organics Face Cream
+          </h2>
+          <div className="w-12 h-0.5 bg-accent-500 mx-auto rounded-full mt-2"></div>
+        </div>
+
+        {/* Clickable Image Container */}
+        <Link 
+          to={linkUrl}
+          className="block max-w-xs sm:max-w-sm mx-auto aspect-square rounded-3xl bg-white border border-primary-100/50 p-6 shadow-xs hover:shadow-md transition-all duration-300 group hover:-translate-y-1 relative overflow-hidden"
+        >
+          <div className="w-full h-full relative flex items-center justify-center">
+            {images.map((img, idx) => (
+              <img
+                key={img}
+                src={img}
+                alt={`R.K. Organics Face Cream - View ${idx + 1}`}
+                className={`absolute max-h-full max-w-full object-contain transition-opacity duration-700 ease-in-out ${
+                  idx === currentImgIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                }`}
+              />
+            ))}
+          </div>
+        </Link>
+      </div>
+    </section>
+  );
+};
+
 export default function Home() {
   const [settings, setSettings] = useState({
     businessName: 'R.K. Ayurveda',
@@ -75,6 +138,7 @@ export default function Home() {
   const [categories, setCategories] = useState([]);
   const [currentCatIndex, setCurrentCatIndex] = useState(0);
   const [featuredMedicines, setFeaturedMedicines] = useState([]);
+  const [allMedicines, setAllMedicines] = useState([]);
   const [benefits, setBenefits] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
   const [promotions, setPromotions] = useState([]);
@@ -105,6 +169,7 @@ export default function Home() {
       
       // Filter featured & active medicines: limit 3
       if (medicinesData) {
+        setAllMedicines(medicinesData);
         const active = medicinesData
           .filter(m => m.isActive && m.availability !== 'HIDDEN' && m.category?.isEnabled && m.isFeatured)
           .slice(0, 3);
@@ -229,6 +294,9 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      
+      {/* Featured Face Cream Auto Showcase */}
+      <FaceCreamShowcase allMedicines={allMedicines} />
       
       {/* Dynamic Promotion Banner Ribbon (shows if there are active promos) */}
       {promotions.length > 0 && (
