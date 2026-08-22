@@ -72,24 +72,27 @@ const FaceCreamShowcase = ({ allMedicines }) => {
   const linkUrl = faceCreamProduct ? `/product/${faceCreamProduct.slug}` : '/medicines';
 
   return (
-    <section className="py-12 bg-gradient-to-b from-primary-50/30 to-sand-50/20 border-b border-primary-100/40 revealed">
-      <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
+    <section className="py-20 bg-gradient-to-b from-primary-50/20 to-white border-t border-b border-primary-100/30">
+      <div className="max-w-4xl mx-auto px-4 text-center space-y-8">
         
-        {/* Header content */}
-        <div className="space-y-2">
-          <span className="text-accent-600 text-xs sm:text-sm font-bold uppercase tracking-widest block">
-            Featured Face Cream
+        {/* Label, Heading, Subtext */}
+        <div className="space-y-3">
+          <span className="bg-accent-100 text-accent-800 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full inline-block shadow-2xs">
+            FEATURED
           </span>
-          <h2 className="font-display font-bold text-2xl sm:text-3xl text-primary-955">
+          <h2 className="font-display font-bold text-3xl sm:text-4xl text-primary-955">
             R.K. Organics Face Cream
           </h2>
-          <div className="w-12 h-0.5 bg-accent-500 mx-auto rounded-full mt-2"></div>
+          <p className="text-sand-600 text-sm sm:text-base max-w-md mx-auto">
+            Natural care for healthy, radiant-looking skin.
+          </p>
+          <div className="w-16 h-1 bg-accent-500 mx-auto rounded-full mt-4"></div>
         </div>
 
-        {/* Clickable Image Container */}
+        {/* Large Face Cream image showcase */}
         <Link 
           to={linkUrl}
-          className="block max-w-xs sm:max-w-sm mx-auto aspect-square rounded-3xl bg-white border border-primary-100/50 p-6 shadow-xs hover:shadow-md transition-all duration-300 group hover:-translate-y-1 relative overflow-hidden"
+          className="block max-w-sm sm:max-w-md mx-auto aspect-square rounded-3xl bg-white border border-primary-100/40 p-8 shadow-xs hover:shadow-md transition-all duration-300 group hover:-translate-y-1 relative overflow-hidden"
         >
           <div className="w-full h-full relative flex items-center justify-center">
             {images.map((img, idx) => (
@@ -295,9 +298,6 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       
-      {/* Featured Face Cream Auto Showcase */}
-      <FaceCreamShowcase allMedicines={allMedicines} />
-      
       {/* Dynamic Promotion Banner Ribbon (shows if there are active promos) */}
       {promotions.length > 0 && (
         <div className="bg-accent-500 text-primary-950 font-medium py-3 px-4 text-center text-sm relative z-30 shadow-xs flex flex-wrap items-center justify-center gap-2 animate-in slide-in-from-top duration-200">
@@ -375,6 +375,9 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* Featured Face Cream Auto Showcase */}
+      <FaceCreamShowcase allMedicines={allMedicines} />
 
       {/* Intro section */}
       <section className="py-16 bg-white">
