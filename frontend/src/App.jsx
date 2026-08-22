@@ -18,42 +18,76 @@ function ScrollObserver() {
     // Reset scroll position to top on route change
     window.scrollTo(0, 0);
 
-    const timer = setTimeout(() => {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('revealed');
-            observer.unobserve(entry.target);
-          }
-        });
-      }, {
-        threshold: 0.05,
-        rootMargin: '0px 0px -40px 0px'
-      });
+    const observedElements = new Set();
+    const observedGrids = new Set();
+    const gridObservers = [];
 
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+          observedElements.delete(entry.target);
+        }
+      });
+    }, {
+      threshold: 0.05,
+      rootMargin: '0px 0px -40px 0px'
+    });
+
+    const updateObservations = () => {
       const targets = document.querySelectorAll('section, .scroll-reveal, .stagger-list');
-      targets.forEach(t => observer.observe(t));
+      targets.forEach(t => {
+        if (!observedElements.has(t) && !t.classList.contains('revealed')) {
+          observer.observe(t);
+          observedElements.add(t);
+        }
+      });
 
       // Auto stagger grid list children if grid has stagger-list class
       const staggerGrids = document.querySelectorAll('.stagger-list');
       staggerGrids.forEach(grid => {
-        if (grid.classList.contains('revealed')) return;
-        // Check if any child is intersecting, then reveal entire grid
-        const gridObserver = new IntersectionObserver(([gEntry]) => {
-          if (gEntry.isIntersecting) {
-            grid.classList.add('revealed');
-            gridObserver.unobserve(grid);
-          }
-        }, { threshold: 0.05 });
-        gridObserver.observe(grid);
+        if (!observedGrids.has(grid) && !grid.classList.contains('revealed')) {
+          const gridObserver = new IntersectionObserver(([gEntry]) => {
+            if (gEntry.isIntersecting) {
+              grid.classList.add('revealed');
+              gridObserver.unobserve(grid);
+              observedGrids.delete(grid);
+            }
+          }, { threshold: 0.05 });
+          gridObserver.observe(grid);
+          gridObservers.push(gridObserver);
+          observedGrids.add(grid);
+        }
       });
+    };
 
-      return () => {
-        targets.forEach(t => observer.unobserve(t));
-      };
-    }, 100);
+    // Initial check
+    updateObservations();
 
-    return () => clearTimeout(timer);
+    // Setup timeouts to handle slower loads
+    const timer = setTimeout(updateObservations, 100);
+    const timer2 = setTimeout(updateObservations, 500);
+    const timer3 = setTimeout(updateObservations, 1500);
+
+    // Watch DOM mutations to capture late-rendered sections (e.g. testimonials)
+    const mutationObserver = new MutationObserver(() => {
+      updateObservations();
+    });
+
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+      mutationObserver.disconnect();
+      observer.disconnect();
+      gridObservers.forEach(go => go.disconnect());
+    };
   }, [location.pathname]);
 
   return null;
